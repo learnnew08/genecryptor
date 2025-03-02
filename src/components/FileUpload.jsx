@@ -2,18 +2,11 @@
 import React, { useState, useRef } from 'react';
 import { FileUp, File, Image, Music, X } from 'lucide-react';
 
-type FileType = 'text' | 'image' | 'audio';
-
-interface FileUploadProps {
-  fileType: FileType;
-  onFileSelect: (file: File | null) => void;
-}
-
-const FileUpload: React.FC<FileUploadProps> = ({ fileType, onFileSelect }) => {
+const FileUpload = ({ fileType, onFileSelect }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   const acceptMap = {
     text: '.txt,.doc,.docx,.pdf',
@@ -33,17 +26,17 @@ const FileUpload: React.FC<FileUploadProps> = ({ fileType, onFileSelect }) => {
     audio: 'audio file'
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (e) => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
     
@@ -52,13 +45,13 @@ const FileUpload: React.FC<FileUploadProps> = ({ fileType, onFileSelect }) => {
     }
   };
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       handleFile(e.target.files[0]);
     }
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = (file) => {
     setSelectedFile(file);
     onFileSelect(file);
     
@@ -66,7 +59,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ fileType, onFileSelect }) => {
     if (fileType === 'image' && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result as string);
+        setPreview(reader.result);
       };
       reader.readAsDataURL(file);
     } else if (fileType === 'audio' && file.type.startsWith('audio/')) {

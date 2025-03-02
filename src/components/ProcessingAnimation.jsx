@@ -1,11 +1,7 @@
 
 import React from 'react';
 
-interface ProcessingAnimationProps {
-  type: 'encrypt' | 'decrypt';
-}
-
-const ProcessingAnimation: React.FC<ProcessingAnimationProps> = ({ type }) => {
+const ProcessingAnimation = ({ type }) => {
   const colorClass = type === 'encrypt' ? 'bg-gene-accent' : 'bg-gene-primary';
   
   return (

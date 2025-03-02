@@ -2,12 +2,7 @@
 import React, { useState } from 'react';
 import { Key, Eye, EyeOff } from 'lucide-react';
 
-interface KeyInputProps {
-  onChange: (key: string) => void;
-  value: string;
-}
-
-const KeyInput: React.FC<KeyInputProps> = ({ onChange, value }) => {
+const KeyInput = ({ onChange, value }) => {
   const [showKey, setShowKey] = useState(false);
 
   return (
