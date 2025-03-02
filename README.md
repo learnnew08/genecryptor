@@ -1,3 +1,4 @@
+
 # Welcome to your Lovable project
 
 ## Project info
@@ -36,19 +37,24 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Troubleshooting
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+If you see the error `'vite' is not recognized as an internal or external command`, try these solutions:
 
-**Use GitHub Codespaces**
+1. Make sure all dependencies are installed:
+   ```
+   npm install
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Try running with npx:
+   ```
+   npx vite
+   ```
+
+3. If issues persist, you can install vite globally:
+   ```
+   npm install -g vite
+   ```
 
 ## What technologies are used for this project?
 
