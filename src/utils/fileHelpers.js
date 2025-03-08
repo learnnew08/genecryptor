@@ -3,9 +3,21 @@
 
 // Create download link and trigger download
 export const downloadFile = (data, filename, type, isBase64 = false) => {
-  const blob = isBase64 
-    ? dataURItoBlob(`data:${type};base64,${data}`) 
-    : new Blob([data], { type });
+  let blob;
+  
+  if (isBase64) {
+    // For base64 encoded data (images, audio)
+    try {
+      blob = dataURItoBlob(`data:${type};base64,${data}`);
+    } catch (error) {
+      console.error("Error creating blob from base64:", error);
+      // Fallback to plain text if base64 conversion fails
+      blob = new Blob([data], { type: 'text/plain' });
+    }
+  } else {
+    // For regular text data
+    blob = new Blob([data], { type });
+  }
   
   const url = URL.createObjectURL(blob);
   
@@ -24,6 +36,11 @@ export const downloadFile = (data, filename, type, isBase64 = false) => {
 
 // Convert data URI to Blob
 function dataURItoBlob(dataURI) {
+  // Handle case when dataURI doesn't contain a comma
+  if (!dataURI.includes(',')) {
+    throw new Error('Invalid data URI format');
+  }
+  
   const byteString = atob(dataURI.split(',')[1]);
   const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
   

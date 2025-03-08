@@ -171,23 +171,26 @@ const processTextFile = async (file, secretKey, isEncrypt) => {
 };
 
 const processImageFile = async (file, secretKey, isEncrypt) => {
-  // Convert image to base64 for processing
-  const arrayBuffer = await file.arrayBuffer();
-  const base64 = btoa(
-    new Uint8Array(arrayBuffer).reduce(
-      (data, byte) => data + String.fromCharCode(byte),
-      ''
-    )
-  );
-  
   if (isEncrypt) {
+    // Convert image to base64 for processing
+    const arrayBuffer = await file.arrayBuffer();
+    const base64 = btoa(
+      new Uint8Array(arrayBuffer).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        ''
+      )
+    );
+    
     const encryptedDNA = encryptData(base64, secretKey);
     return { data: encryptedDNA, type: 'text/plain', filename: `${file.name}.encrypted` };
   } else {
-    const decryptedBase64 = decryptData(file.text(), secretKey);
+    // For decryption, read the encrypted content
+    const encryptedContent = await file.text();
+    const decryptedBase64 = decryptData(encryptedContent, secretKey);
+    
     return { 
       data: decryptedBase64, 
-      type: file.type, 
+      type: 'image/png', // Default to png, but ideally we should store the original type
       filename: file.name.replace('.encrypted', ''),
       isBase64: true
     };
@@ -195,23 +198,26 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
 };
 
 const processAudioFile = async (file, secretKey, isEncrypt) => {
-  // Same approach as images - convert to base64 for processing
-  const arrayBuffer = await file.arrayBuffer();
-  const base64 = btoa(
-    new Uint8Array(arrayBuffer).reduce(
-      (data, byte) => data + String.fromCharCode(byte),
-      ''
-    )
-  );
-  
   if (isEncrypt) {
+    // Convert audio to base64 for processing
+    const arrayBuffer = await file.arrayBuffer();
+    const base64 = btoa(
+      new Uint8Array(arrayBuffer).reduce(
+        (data, byte) => data + String.fromCharCode(byte),
+        ''
+      )
+    );
+    
     const encryptedDNA = encryptData(base64, secretKey);
     return { data: encryptedDNA, type: 'text/plain', filename: `${file.name}.encrypted` };
   } else {
-    const decryptedBase64 = decryptData(file.text(), secretKey);
+    // For decryption, read the encrypted content
+    const encryptedContent = await file.text();
+    const decryptedBase64 = decryptData(encryptedContent, secretKey);
+    
     return { 
       data: decryptedBase64, 
-      type: file.type, 
+      type: 'audio/mpeg', // Default to mp3, but ideally we should store the original type
       filename: file.name.replace('.encrypted', ''),
       isBase64: true
     };

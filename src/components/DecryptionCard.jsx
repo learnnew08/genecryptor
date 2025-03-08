@@ -27,8 +27,13 @@ const DecryptionCard = () => {
     setError(null);
     
     try {
+      console.log("Decryption started with file type:", selectedFileType);
+      console.log("File:", selectedFile);
+      
       // Process the file with DNA cryptography
       const result = await processFile(selectedFile, secretKey, false, selectedFileType);
+      
+      console.log("Decryption result:", result);
       
       // Download the decrypted file
       downloadFile(result.data, result.filename, result.type, result.isBase64);
