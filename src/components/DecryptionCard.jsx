@@ -28,12 +28,12 @@ const DecryptionCard = () => {
     
     try {
       console.log("Decryption started with file type:", selectedFileType);
-      console.log("File:", selectedFile);
+      console.log("File:", selectedFile.name, "Size:", selectedFile.size);
       
       // Process the file with DNA cryptography
       const result = await processFile(selectedFile, secretKey, false, selectedFileType);
       
-      console.log("Decryption result:", result);
+      console.log("Decryption complete. Result type:", result.type);
       
       // Download the decrypted file
       downloadFile(result.data, result.filename, result.type, result.isBase64);
@@ -49,8 +49,8 @@ const DecryptionCard = () => {
     } catch (err) {
       console.error("Decryption error:", err);
       setIsProcessing(false);
-      setError(err.message || "Failed to decrypt file");
-      toast.error("Failed to decrypt file: " + err.message);
+      setError(err.message || "Failed to decrypt file. Make sure you're using the correct secret key.");
+      toast.error("Failed to decrypt file: " + (err.message || "Invalid secret key or file format"));
     }
   };
 

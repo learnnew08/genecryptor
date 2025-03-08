@@ -26,15 +26,24 @@ const textToBinary = (text) => {
 
 // Convert binary to text
 const binaryToText = (binary) => {
-  const chunks = binary.match(/.{1,8}/g) || [];
+  // Ensure binary string length is a multiple of 8
+  const paddedBinary = binary + '0'.repeat((8 - binary.length % 8) % 8);
+  
+  const chunks = paddedBinary.match(/.{1,8}/g) || [];
   return chunks.map(chunk => {
-    return String.fromCharCode(parseInt(chunk, 2));
+    if (chunk.length === 8) {
+      return String.fromCharCode(parseInt(chunk, 2));
+    }
+    return '';
   }).join('');
 };
 
 // Convert binary to DNA sequence
 const binaryToDNA = (binary) => {
-  const pairs = binary.match(/.{1,2}/g) || [];
+  // Ensure binary length is even
+  const paddedBinary = binary.length % 2 === 0 ? binary : binary + '0';
+  
+  const pairs = paddedBinary.match(/.{1,2}/g) || [];
   return pairs.map(pair => nucleotideMap[pair] || 'A').join('');
 };
 
@@ -126,15 +135,26 @@ const encryptData = (data, secretKey) => {
     return pairs[nucleotide + keyNucleotide] || 'A';
   }).join('');
   
-  return encryptedDNA;
+  // Add a verification header to ensure we can validate decryption later
+  const salt = "_GENECRYPT_SALT_";
+  return salt + encryptedDNA;
 };
 
 // Decrypt data using DNA decryption and genetic algorithm
-const decryptData = (encryptedDNA, secretKey) => {
+const decryptData = (encryptedData, secretKey) => {
+  // Check if the data has our verification header
+  const salt = "_GENECRYPT_SALT_";
+  let encryptedDNA = encryptedData;
+  
+  if (encryptedData.startsWith(salt)) {
+    encryptedDNA = encryptedData.substring(salt.length);
+  }
+  
   // Generate the same encryption key
   const encryptionKey = generateEncryptionKey(secretKey, encryptedDNA.length);
   
-  // Reverse the XOR-like operation
+  // Create the decryption mapping based on the encryption rules
+  const decryptionMap = {};
   const pairs = {
     'A': { 'A': 'A', 'G': 'G', 'C': 'C', 'T': 'T' },
     'G': { 'A': 'G', 'G': 'A', 'C': 'T', 'T': 'C' },
@@ -142,15 +162,22 @@ const decryptData = (encryptedDNA, secretKey) => {
     'T': { 'A': 'T', 'G': 'C', 'C': 'G', 'T': 'A' }
   };
   
+  // Pre-compute the reverse mapping for faster lookup
+  for (const orig in pairs) {
+    for (const key in pairs[orig]) {
+      const encrypted = pairs[orig][key];
+      if (!decryptionMap[encrypted]) {
+        decryptionMap[encrypted] = {};
+      }
+      decryptionMap[encrypted][key] = orig;
+    }
+  }
+  
   const decryptedDNA = encryptedDNA.split('').map((nucleotide, index) => {
     const keyNucleotide = encryptionKey[index % encryptionKey.length];
-    // Find the original nucleotide that, when combined with the key, produces the encrypted one
-    for (const original in pairs) {
-      if (pairs[original][keyNucleotide] === nucleotide) {
-        return original;
-      }
-    }
-    return 'A';
+    
+    // Use the pre-computed mapping to find the original nucleotide
+    return (decryptionMap[nucleotide] && decryptionMap[nucleotide][keyNucleotide]) || 'A';
   }).join('');
   
   // Convert back to binary and then to text
@@ -160,17 +187,24 @@ const decryptData = (encryptedDNA, secretKey) => {
 
 // Process files for encryption and decryption
 const processTextFile = async (file, secretKey, isEncrypt) => {
+  console.log("Processing text file...");
   const text = await file.text();
+  
   if (isEncrypt) {
     const encryptedDNA = encryptData(text, secretKey);
     return { data: encryptedDNA, type: 'text/plain', filename: `${file.name}.encrypted` };
   } else {
+    console.log("Decrypting text with secret key: [secret]");
+    console.log("File content length:", text.length);
     const decryptedText = decryptData(text, secretKey);
+    console.log("Decrypted length:", decryptedText.length);
     return { data: decryptedText, type: 'text/plain', filename: file.name.replace('.encrypted', '') };
   }
 };
 
 const processImageFile = async (file, secretKey, isEncrypt) => {
+  console.log("Processing image file...");
+  
   if (isEncrypt) {
     // Convert image to base64 for processing
     const arrayBuffer = await file.arrayBuffer();
@@ -186,6 +220,7 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
   } else {
     // For decryption, read the encrypted content
     const encryptedContent = await file.text();
+    console.log("Decrypting image file...");
     const decryptedBase64 = decryptData(encryptedContent, secretKey);
     
     return { 
@@ -198,6 +233,8 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
 };
 
 const processAudioFile = async (file, secretKey, isEncrypt) => {
+  console.log("Processing audio file...");
+  
   if (isEncrypt) {
     // Convert audio to base64 for processing
     const arrayBuffer = await file.arrayBuffer();
@@ -213,6 +250,7 @@ const processAudioFile = async (file, secretKey, isEncrypt) => {
   } else {
     // For decryption, read the encrypted content
     const encryptedContent = await file.text();
+    console.log("Decrypting audio file...");
     const decryptedBase64 = decryptData(encryptedContent, secretKey);
     
     return { 
@@ -228,6 +266,8 @@ export const processFile = async (file, secretKey, isEncrypt, fileType) => {
   if (!file || !secretKey) {
     throw new Error('File and secret key are required');
   }
+  
+  console.log(`Processing ${fileType} file for ${isEncrypt ? 'encryption' : 'decryption'}`);
   
   // Process based on file type
   if (fileType === 'text') {
