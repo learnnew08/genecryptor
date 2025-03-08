@@ -7,7 +7,7 @@ const KeyInput = ({ onChange, value }) => {
 
   return (
     <div className="w-full">
-      <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gene-secondary">
+      <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
         <Key className="w-4 h-4" />
         Secret Key
       </label>
@@ -18,12 +18,12 @@ const KeyInput = ({ onChange, value }) => {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Enter your secret key"
-          className="gene-input pr-10"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-10"
         />
         
         <button
           type="button"
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gene-muted hover:text-gene-primary transition-colors"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
           onClick={() => setShowKey(!showKey)}
         >
           {showKey ? (
@@ -34,7 +34,7 @@ const KeyInput = ({ onChange, value }) => {
         </button>
       </div>
       
-      <p className="mt-2 text-xs text-gene-muted">
+      <p className="mt-2 text-xs text-gray-500">
         Your key should be complex and unique. Never share your secret key with anyone.
       </p>
     </div>

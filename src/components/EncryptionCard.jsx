@@ -55,17 +55,17 @@ const EncryptionCard = () => {
   };
 
   return (
-    <div className="gene-card w-full h-full">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm w-full h-full">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-gene-accent/10 flex items-center justify-center">
-          <Lock className="w-5 h-5 text-gene-accent" />
+        <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+          <Lock className="w-5 h-5 text-green-600" />
         </div>
-        <h3 className="text-xl font-display font-semibold">Encrypt Your Data</h3>
+        <h3 className="text-xl font-semibold">Encrypt Your Data</h3>
       </div>
       
       <div className="space-y-6">
         <div>
-          <label className="block mb-3 text-sm font-medium text-gene-secondary">File Type</label>
+          <label className="block mb-3 text-sm font-medium text-gray-700">File Type</label>
           <div className="flex space-x-2">
             {[
               { type: 'text', label: 'Text' },
@@ -76,8 +76,8 @@ const EncryptionCard = () => {
                 key={item.type}
                 className={`flex-1 px-4 py-2 rounded-xl border text-sm transition-all duration-300 
                 ${selectedFileType === item.type 
-                  ? 'border-gene-accent bg-gene-accent/5 text-gene-accent' 
-                  : 'border-gene-border text-gene-muted hover:bg-gene-border/20'}`}
+                  ? 'border-green-500 bg-green-50 text-green-700' 
+                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
                 onClick={() => {
                   setSelectedFileType(item.type);
                   setSelectedFile(null);
@@ -90,7 +90,7 @@ const EncryptionCard = () => {
         </div>
         
         <div>
-          <label className="block mb-3 text-sm font-medium text-gene-secondary">Upload File</label>
+          <label className="block mb-3 text-sm font-medium text-gray-700">Upload File</label>
           <FileUpload 
             fileType={selectedFileType} 
             onFileSelect={setSelectedFile} 
@@ -119,28 +119,28 @@ const EncryptionCard = () => {
             <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
               <Check className="w-6 h-6 text-green-600" />
             </div>
-            <p className="font-medium text-gene-primary">Encryption Complete!</p>
-            <p className="text-sm text-gene-muted mt-1">Your file has been securely encrypted and downloaded</p>
+            <p className="font-medium text-gray-900">Encryption Complete!</p>
+            <p className="text-sm text-gray-500 mt-1">Your file has been securely encrypted and downloaded</p>
           </div>
         ) : (
           <button
             onClick={handleEncrypt}
             disabled={!selectedFile || !secretKey}
-            className={`w-full gene-button-primary ${
+            className={`w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-300 ${
               !selectedFile || !secretKey 
                 ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:bg-gene-secondary'
+                : 'hover:bg-blue-700'
             }`}
           >
             Encrypt File
           </button>
         )}
         
-        <div className="p-4 rounded-xl bg-gene-accent/5 border border-gene-accent/10 flex items-start gap-3">
-          <Info className="w-5 h-5 text-gene-accent shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-green-50 border border-green-100 flex items-start gap-3">
+          <Info className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm text-gene-secondary font-medium">Enhanced Security</p>
-            <p className="text-xs text-gene-muted mt-1">
+            <p className="text-sm text-gray-700 font-medium">Enhanced Security</p>
+            <p className="text-xs text-gray-500 mt-1">
               Your file will be encrypted using DNA Cryptography and Adaptive Genetic Algorithm, providing superior protection compared to traditional methods.
             </p>
           </div>

@@ -3,8 +3,8 @@ import React from 'react';
 import { Dna } from 'lucide-react';
 
 const ProcessingAnimation = ({ type }) => {
-  const colorClass = type === 'encrypt' ? 'text-gene-accent' : 'text-gene-primary';
-  const bgColorClass = type === 'encrypt' ? 'bg-gene-accent/10' : 'bg-gene-primary/10';
+  const colorClass = type === 'encrypt' ? 'text-green-600' : 'text-blue-600';
+  const bgColorClass = type === 'encrypt' ? 'bg-green-100' : 'bg-blue-100';
   
   return (
     <div className="flex flex-col items-center justify-center py-8">
@@ -16,16 +16,16 @@ const ProcessingAnimation = ({ type }) => {
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className={`w-3 h-3 rounded-full ${type === 'encrypt' ? 'bg-gene-accent' : 'bg-gene-primary'} animate-pulse-slow`}
+            className={`w-3 h-3 rounded-full ${type === 'encrypt' ? 'bg-green-500' : 'bg-blue-500'} animate-pulse-slow`}
             style={{ animationDelay: `${index * 150}ms` }}
           />
         ))}
       </div>
       
-      <p className="text-gene-secondary font-medium">
+      <p className="text-gray-800 font-medium">
         {type === 'encrypt' ? 'Encrypting Your Data' : 'Decrypting Your Data'}
       </p>
-      <p className="text-sm text-gene-muted mt-1 text-center">
+      <p className="text-sm text-gray-500 mt-1 text-center">
         {type === 'encrypt' 
           ? 'Applying DNA cryptography and genetic algorithms...' 
           : 'Processing genetic sequences to recover your data...'}

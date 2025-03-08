@@ -17,10 +17,10 @@ const FileUpload = ({ fileType, onFileSelect }) => {
   };
 
   const iconMap = {
-    text: <File className="w-10 h-10 text-gene-muted" />,
-    image: <Image className="w-10 h-10 text-gene-muted" />,
-    audio: <Music className="w-10 h-10 text-gene-muted" />,
-    encrypted: <Lock className="w-10 h-10 text-gene-accent" />
+    text: <File className="w-10 h-10 text-gray-400" />,
+    image: <Image className="w-10 h-10 text-gray-400" />,
+    audio: <Music className="w-10 h-10 text-gray-400" />,
+    encrypted: <Lock className="w-10 h-10 text-blue-500" />
   };
 
   const typeText = {
@@ -91,18 +91,20 @@ const FileUpload = ({ fileType, onFileSelect }) => {
     <div className="w-full">
       {!selectedFile ? (
         <div
-          className={`file-drop-area ${isDragging ? 'active' : ''}`}
+          className={`w-full h-40 flex flex-col items-center justify-center border-2 border-dashed rounded-xl bg-gray-50 cursor-pointer transition-colors px-6 py-8 ${
+            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-100'
+          }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
         >
-          <FileUp className="w-10 h-10 text-gene-muted mb-3" />
-          <p className="text-gene-muted mb-1">
+          <FileUp className="w-10 h-10 text-gray-400 mb-3" />
+          <p className="text-gray-500 mb-1">
             Drag and drop your {typeText[fileType]} here
           </p>
-          <p className="text-gene-muted text-sm">
-            or <span className="text-gene-accent">browse files</span>
+          <p className="text-gray-500 text-sm">
+            or <span className="text-blue-500">browse files</span>
           </p>
           <input
             type="file"
@@ -113,7 +115,7 @@ const FileUpload = ({ fileType, onFileSelect }) => {
           />
         </div>
       ) : (
-        <div className="gene-card flex flex-col items-center justify-center p-4 animate-slide-up">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col items-center">
           {preview && fileType === 'image' ? (
             <div className="relative w-full h-36 mb-4">
               <img 
@@ -133,7 +135,7 @@ const FileUpload = ({ fileType, onFileSelect }) => {
           <div className="flex items-center gap-2 w-full">
             <div className="flex-1 truncate">
               <p className="font-medium truncate">{selectedFile.name}</p>
-              <p className="text-xs text-gene-muted">
+              <p className="text-xs text-gray-500">
                 {(selectedFile.size / 1024).toFixed(2)} KB
               </p>
             </div>
@@ -142,9 +144,9 @@ const FileUpload = ({ fileType, onFileSelect }) => {
                 e.stopPropagation();
                 clearSelection();
               }}
-              className="p-1 rounded-full hover:bg-gene-border/50 transition-colors"
+              className="p-1 rounded-full hover:bg-gray-100 transition-colors"
             >
-              <X className="w-5 h-5 text-gene-muted" />
+              <X className="w-5 h-5 text-gray-500" />
             </button>
           </div>
         </div>
