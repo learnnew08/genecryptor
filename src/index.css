@@ -1,136 +1,81 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-  }
+:root {
+  --gene-primary: #3b82f6;
+  --gene-secondary: #1e40af;
+  --gene-accent: #10b981;
+  --gene-muted: #6b7280;
+  --gene-border: #e5e7eb;
+  --gene-bg: #f9fafb;
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  
-  html, body {
-    @apply antialiased bg-gene-bg text-gene-primary overflow-x-hidden scroll-smooth;
-  }
-  
   body {
-    @apply min-h-screen font-sans;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold tracking-tight;
+    @apply bg-white text-gene-primary antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
 }
 
 @layer components {
   .gene-card {
-    @apply bg-gene-card border border-gene-border rounded-2xl shadow-md backdrop-blur-sm 
-    transition-all duration-300 hover:shadow-lg p-6 overflow-hidden;
-  }
-  
-  .gene-button {
-    @apply px-6 py-3 rounded-xl font-medium transition-all duration-300
-    focus:outline-none focus:ring-2 focus:ring-gene-accent/50;
+    @apply bg-white rounded-xl border border-gene-border p-6 shadow-sm;
   }
   
   .gene-button-primary {
-    @apply gene-button bg-gene-primary text-white hover:bg-gene-secondary;
-  }
-  
-  .gene-button-outline {
-    @apply gene-button border border-gene-border bg-transparent hover:bg-gene-border/20;
+    @apply bg-gene-primary text-white py-3 px-4 rounded-xl font-medium transition-colors duration-300;
   }
   
   .gene-input {
-    @apply w-full px-4 py-3 bg-white border border-gene-border rounded-xl
-    focus:ring-2 focus:ring-gene-accent/50 focus:outline-none transition-all duration-300;
+    @apply w-full px-4 py-3 rounded-xl border border-gene-border bg-white focus:outline-none focus:ring-2 focus:ring-gene-primary/20 focus:border-gene-primary transition-all;
   }
   
-  .glass-panel {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 rounded-2xl;
+  .file-drop-area {
+    @apply w-full h-40 flex flex-col items-center justify-center border-2 border-dashed border-gene-border rounded-xl bg-gene-bg/50 hover:bg-gene-bg cursor-pointer transition-colors px-6 py-8;
   }
   
-  .dna-bg {
-    @apply relative overflow-hidden;
-  }
-  
-  .dna-bg::before {
-    content: "";
-    @apply absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAwIDAgQzQzLjggMCAwIDQzLjggMCAxMDAgQzAgMTU2LjIgNDMuOCAyMDAgMTAwIDIwMCBDMTU2LjIgMjAwIDIwMCAxNTYuMiAyMDAgMTAwIEMyMDAgNDMuOCAxNTYuMiAwIDEwMCAwIFoiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgxNDksIDE4NywgMjMzLCAwLjEpIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=')] 
-    bg-repeat opacity-20 z-[-1] animate-pulse-slow;
+  .file-drop-area.active {
+    @apply border-gene-accent bg-gene-accent/5;
   }
 }
 
-.file-drop-area {
-  @apply relative border-2 border-dashed border-gene-border rounded-xl p-8 
-  transition-all duration-300 flex flex-col items-center justify-center text-center;
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulseSlow 1.5s infinite;
+  }
+  
+  .animate-dna-spin {
+    animation: dnaSpin 3s linear infinite;
+  }
 }
 
-.file-drop-area.active {
-  @apply border-gene-accent bg-gene-accent/5;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes dnaSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
 }

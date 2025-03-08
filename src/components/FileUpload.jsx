@@ -1,6 +1,8 @@
 
 import React, { useState, useRef } from 'react';
-import { FileUp, File, Image, Music, X } from 'lucide-react';
+import { FileUp, File, Image, Music, X, Lock } from 'lucide-react';
+import { validateFileType } from '../utils/fileHelpers';
+import { toast } from 'sonner';
 
 const FileUpload = ({ fileType, onFileSelect }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -9,15 +11,16 @@ const FileUpload = ({ fileType, onFileSelect }) => {
   const fileInputRef = useRef(null);
 
   const acceptMap = {
-    text: '.txt,.doc,.docx,.pdf',
-    image: 'image/*',
-    audio: 'audio/*'
+    text: '.txt,.doc,.docx,.pdf,.encrypted',
+    image: 'image/*,.encrypted',
+    audio: 'audio/*,.encrypted'
   };
 
   const iconMap = {
     text: <File className="w-10 h-10 text-gene-muted" />,
     image: <Image className="w-10 h-10 text-gene-muted" />,
-    audio: <Music className="w-10 h-10 text-gene-muted" />
+    audio: <Music className="w-10 h-10 text-gene-muted" />,
+    encrypted: <Lock className="w-10 h-10 text-gene-accent" />
   };
 
   const typeText = {
@@ -52,6 +55,14 @@ const FileUpload = ({ fileType, onFileSelect }) => {
   };
 
   const handleFile = (file) => {
+    if (!file) return;
+    
+    // Check if file is valid for the selected type (unless it's an encrypted file)
+    if (!file.name.endsWith('.encrypted') && !validateFileType(file, fileType)) {
+      toast.error(`Selected file is not a valid ${fileType} file`);
+      return;
+    }
+    
     setSelectedFile(file);
     onFileSelect(file);
     
@@ -62,9 +73,6 @@ const FileUpload = ({ fileType, onFileSelect }) => {
         setPreview(reader.result);
       };
       reader.readAsDataURL(file);
-    } else if (fileType === 'audio' && file.type.startsWith('audio/')) {
-      // For audio files, we could create an audio element preview if needed
-      setPreview(null);
     } else {
       setPreview(null);
     }
@@ -116,7 +124,9 @@ const FileUpload = ({ fileType, onFileSelect }) => {
             </div>
           ) : (
             <div className="mb-4">
-              {iconMap[fileType]}
+              {selectedFile.name.endsWith('.encrypted') 
+                ? iconMap.encrypted
+                : iconMap[fileType]}
             </div>
           )}
           

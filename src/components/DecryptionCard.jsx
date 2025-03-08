@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
-import { KeyRound, Check, Info } from 'lucide-react';
+import { KeyRound, Check, Info, AlertTriangle } from 'lucide-react';
 import FileUpload from './FileUpload';
 import KeyInput from './KeyInput';
 import ProcessingAnimation from './ProcessingAnimation';
+import { processFile } from '../utils/dnaCrypto';
+import { downloadFile } from '../utils/fileHelpers';
+import { toast } from 'sonner';
 
 const DecryptionCard = () => {
   const [selectedFileType, setSelectedFileType] = useState('text');
@@ -11,23 +14,39 @@ const DecryptionCard = () => {
   const [secretKey, setSecretKey] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleDecrypt = () => {
-    if (!selectedFile || !secretKey) return;
+  const handleDecrypt = async () => {
+    if (!selectedFile || !secretKey) {
+      toast.error("Please select a file and enter a secret key");
+      return;
+    }
     
     setIsProcessing(true);
     setIsComplete(false);
+    setError(null);
     
-    // Simulate decryption process
-    setTimeout(() => {
+    try {
+      // Process the file with DNA cryptography
+      const result = await processFile(selectedFile, secretKey, false, selectedFileType);
+      
+      // Download the decrypted file
+      downloadFile(result.data, result.filename, result.type, result.isBase64);
+      
       setIsProcessing(false);
       setIsComplete(true);
+      toast.success("File decrypted successfully!");
       
       // Reset complete status after a delay
       setTimeout(() => {
         setIsComplete(false);
       }, 3000);
-    }, 2500);
+    } catch (err) {
+      console.error("Decryption error:", err);
+      setIsProcessing(false);
+      setError(err.message || "Failed to decrypt file");
+      toast.error("Failed to decrypt file: " + err.message);
+    }
   };
 
   return (
@@ -78,6 +97,16 @@ const DecryptionCard = () => {
           onChange={setSecretKey} 
         />
         
+        {error && (
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-red-700 font-medium">Decryption Failed</p>
+              <p className="text-xs text-red-600 mt-1">{error}</p>
+            </div>
+          </div>
+        )}
+        
         {isProcessing ? (
           <ProcessingAnimation type="decrypt" />
         ) : isComplete ? (
@@ -86,12 +115,7 @@ const DecryptionCard = () => {
               <Check className="w-6 h-6 text-green-600" />
             </div>
             <p className="font-medium text-gene-primary">Decryption Complete!</p>
-            <p className="text-sm text-gene-muted mt-1">Your file has been successfully decrypted</p>
-            <button 
-              className="mt-4 px-4 py-2 bg-gene-primary text-white rounded-xl text-sm hover:bg-gene-secondary transition-colors"
-            >
-              Download Original File
-            </button>
+            <p className="text-sm text-gene-muted mt-1">Your file has been successfully decrypted and downloaded</p>
           </div>
         ) : (
           <button

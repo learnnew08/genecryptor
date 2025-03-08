@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
-import { Lock, Check, Info } from 'lucide-react';
+import { Lock, Check, Info, AlertTriangle } from 'lucide-react';
 import FileUpload from './FileUpload';
 import KeyInput from './KeyInput';
 import ProcessingAnimation from './ProcessingAnimation';
+import { processFile } from '../utils/dnaCrypto';
+import { downloadFile, validateFileType } from '../utils/fileHelpers';
+import { toast } from 'sonner';
 
 const EncryptionCard = () => {
   const [selectedFileType, setSelectedFileType] = useState('text');
@@ -11,23 +14,44 @@ const EncryptionCard = () => {
   const [secretKey, setSecretKey] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleEncrypt = () => {
-    if (!selectedFile || !secretKey) return;
+  const handleEncrypt = async () => {
+    if (!selectedFile || !secretKey) {
+      toast.error("Please select a file and enter a secret key");
+      return;
+    }
+    
+    if (!validateFileType(selectedFile, selectedFileType)) {
+      toast.error(`Selected file is not a valid ${selectedFileType} file`);
+      return;
+    }
     
     setIsProcessing(true);
     setIsComplete(false);
+    setError(null);
     
-    // Simulate encryption process
-    setTimeout(() => {
+    try {
+      // Process the file with DNA cryptography
+      const result = await processFile(selectedFile, secretKey, true, selectedFileType);
+      
+      // Download the encrypted file
+      downloadFile(result.data, result.filename, result.type, result.isBase64);
+      
       setIsProcessing(false);
       setIsComplete(true);
+      toast.success("File encrypted successfully!");
       
       // Reset complete status after a delay
       setTimeout(() => {
         setIsComplete(false);
       }, 3000);
-    }, 2500);
+    } catch (err) {
+      console.error("Encryption error:", err);
+      setIsProcessing(false);
+      setError(err.message || "Failed to encrypt file");
+      toast.error("Failed to encrypt file: " + err.message);
+    }
   };
 
   return (
@@ -78,6 +102,16 @@ const EncryptionCard = () => {
           onChange={setSecretKey} 
         />
         
+        {error && (
+          <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-red-700 font-medium">Encryption Failed</p>
+              <p className="text-xs text-red-600 mt-1">{error}</p>
+            </div>
+          </div>
+        )}
+        
         {isProcessing ? (
           <ProcessingAnimation type="encrypt" />
         ) : isComplete ? (
@@ -86,12 +120,7 @@ const EncryptionCard = () => {
               <Check className="w-6 h-6 text-green-600" />
             </div>
             <p className="font-medium text-gene-primary">Encryption Complete!</p>
-            <p className="text-sm text-gene-muted mt-1">Your file has been securely encrypted</p>
-            <button 
-              className="mt-4 px-4 py-2 bg-gene-accent text-white rounded-xl text-sm hover:bg-gene-accent/90 transition-colors"
-            >
-              Download Encrypted File
-            </button>
+            <p className="text-sm text-gene-muted mt-1">Your file has been securely encrypted and downloaded</p>
           </div>
         ) : (
           <button
