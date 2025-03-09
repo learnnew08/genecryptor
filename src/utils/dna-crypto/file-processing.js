@@ -76,7 +76,7 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
       }
       
       // Handle case where there's no metadata but has GENECRYPT_V1 header
-      const actualData = encryptedData.startsWith('GENECRYPT_V1') ? 
+      const actualData = encryptedData && encryptedData.startsWith('GENECRYPT_V1') ? 
                         encryptedData : 
                         encryptedContent.startsWith('GENECRYPT_V1') ? 
                         encryptedContent : 
