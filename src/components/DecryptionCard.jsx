@@ -4,7 +4,7 @@ import { KeyRound, Check, Info, AlertTriangle } from 'lucide-react';
 import FileUpload from './FileUpload';
 import KeyInput from './KeyInput';
 import ProcessingAnimation from './ProcessingAnimation';
-import { processFile } from '../utils/dnaCrypto';
+import { processFile, decodeEncryptedString } from '../utils/dnaCrypto';
 import { downloadFile } from '../utils/fileHelpers';
 import { toast } from 'sonner';
 
@@ -15,8 +15,42 @@ const DecryptionCard = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [error, setError] = useState(null);
+  const [directDecrypt, setDirectDecrypt] = useState(false);
+  const [encryptedString, setEncryptedString] = useState('');
+  const [decryptedResult, setDecryptedResult] = useState(null);
 
   const handleDecrypt = async () => {
+    if (directDecrypt) {
+      if (!encryptedString || !secretKey) {
+        toast.error("Please enter the encrypted string and a secret key");
+        return;
+      }
+      
+      setIsProcessing(true);
+      setIsComplete(false);
+      setError(null);
+      setDecryptedResult(null);
+      
+      try {
+        console.log("Direct decryption of string:", encryptedString);
+        const result = decodeEncryptedString(encryptedString, secretKey);
+        setDecryptedResult(result);
+        setIsProcessing(false);
+        setIsComplete(true);
+        toast.success("String decrypted successfully!");
+        
+        setTimeout(() => {
+          setIsComplete(false);
+        }, 3000);
+      } catch (err) {
+        console.error("Decryption error:", err);
+        setIsProcessing(false);
+        setError(err.message || "Failed to decrypt string");
+        toast.error("Failed to decrypt: " + (err.message || "Invalid secret key or format"));
+      }
+      return;
+    }
+    
     if (!selectedFile || !secretKey) {
       toast.error("Please select a file and enter a secret key");
       return;
@@ -25,6 +59,7 @@ const DecryptionCard = () => {
     setIsProcessing(true);
     setIsComplete(false);
     setError(null);
+    setDecryptedResult(null);
     
     try {
       console.log("Decryption started with file type:", selectedFileType);
@@ -64,38 +99,74 @@ const DecryptionCard = () => {
       </div>
       
       <div className="space-y-6">
-        <div>
-          <label className="block mb-3 text-sm font-medium text-gray-700">File Type</label>
-          <div className="flex space-x-2">
-            {[
-              { type: 'text', label: 'Text' },
-              { type: 'image', label: 'Image' },
-              { type: 'audio', label: 'Audio' }
-            ].map((item) => (
-              <button
-                key={item.type}
-                className={`flex-1 px-4 py-2 rounded-xl border text-sm transition-all duration-300 
-                ${selectedFileType === item.type 
-                  ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                  : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
-                onClick={() => {
-                  setSelectedFileType(item.type);
-                  setSelectedFile(null);
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 
+              ${!directDecrypt 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+            onClick={() => setDirectDecrypt(false)}
+          >
+            File Decryption
+          </button>
+          <button
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 
+              ${directDecrypt 
+                ? 'bg-blue-100 text-blue-700' 
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+            onClick={() => setDirectDecrypt(true)}
+          >
+            String Decryption
+          </button>
         </div>
         
-        <div>
-          <label className="block mb-3 text-sm font-medium text-gray-700">Upload Encrypted File</label>
-          <FileUpload 
-            fileType={selectedFileType} 
-            onFileSelect={setSelectedFile} 
-          />
-        </div>
+        {!directDecrypt ? (
+          <>
+            <div>
+              <label className="block mb-3 text-sm font-medium text-gray-700">File Type</label>
+              <div className="flex space-x-2">
+                {[
+                  { type: 'text', label: 'Text' },
+                  { type: 'image', label: 'Image' },
+                  { type: 'audio', label: 'Audio' }
+                ].map((item) => (
+                  <button
+                    key={item.type}
+                    className={`flex-1 px-4 py-2 rounded-xl border text-sm transition-all duration-300 
+                    ${selectedFileType === item.type 
+                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                      : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                    onClick={() => {
+                      setSelectedFileType(item.type);
+                      setSelectedFile(null);
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <label className="block mb-3 text-sm font-medium text-gray-700">Upload Encrypted File</label>
+              <FileUpload 
+                fileType={selectedFileType} 
+                onFileSelect={setSelectedFile} 
+              />
+            </div>
+          </>
+        ) : (
+          <div>
+            <label className="block mb-3 text-sm font-medium text-gray-700">Encrypted String</label>
+            <textarea
+              value={encryptedString}
+              onChange={(e) => setEncryptedString(e.target.value)}
+              placeholder="Paste the encrypted string here"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              rows={4}
+            />
+          </div>
+        )}
         
         <KeyInput 
           value={secretKey} 
@@ -112,6 +183,15 @@ const DecryptionCard = () => {
           </div>
         )}
         
+        {decryptedResult && (
+          <div className="p-4 rounded-xl bg-green-50 border border-green-200">
+            <p className="text-sm font-medium text-gray-700 mb-2">Decrypted Result:</p>
+            <div className="bg-white p-3 rounded-lg border border-green-100 text-gray-800 font-mono text-sm break-all">
+              {decryptedResult}
+            </div>
+          </div>
+        )}
+        
         {isProcessing ? (
           <ProcessingAnimation type="decrypt" />
         ) : isComplete ? (
@@ -120,19 +200,23 @@ const DecryptionCard = () => {
               <Check className="w-6 h-6 text-green-600" />
             </div>
             <p className="font-medium text-gray-900">Decryption Complete!</p>
-            <p className="text-sm text-gray-500 mt-1">Your file has been successfully decrypted and downloaded</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {directDecrypt 
+                ? "Your string has been successfully decrypted" 
+                : "Your file has been successfully decrypted and downloaded"}
+            </p>
           </div>
         ) : (
           <button
             onClick={handleDecrypt}
-            disabled={!selectedFile || !secretKey}
+            disabled={(!selectedFile && !directDecrypt) || (!encryptedString && directDecrypt) || !secretKey}
             className={`w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-300 ${
-              !selectedFile || !secretKey 
+              (!selectedFile && !directDecrypt) || (!encryptedString && directDecrypt) || !secretKey
                 ? 'opacity-50 cursor-not-allowed' 
                 : 'hover:bg-blue-700'
             }`}
           >
-            Decrypt File
+            Decrypt {directDecrypt ? 'String' : 'File'}
           </button>
         )}
         

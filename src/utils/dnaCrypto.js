@@ -18,6 +18,7 @@ const reverseNucleotideMap = {
 
 // Convert text to binary
 const textToBinary = (text) => {
+  console.log("Converting text to binary, length:", text.length);
   return text.split('').map(char => {
     const binary = char.charCodeAt(0).toString(2);
     return binary.padStart(8, '0');
@@ -26,8 +27,9 @@ const textToBinary = (text) => {
 
 // Convert binary to text
 const binaryToText = (binary) => {
+  console.log("Converting binary to text, binary length:", binary.length);
   // Ensure binary string length is a multiple of 8
-  const paddedBinary = binary + '0'.repeat((8 - binary.length % 8) % 8);
+  const paddedBinary = binary.padEnd(Math.ceil(binary.length / 8) * 8, '0');
   
   const chunks = paddedBinary.match(/.{1,8}/g) || [];
   return chunks.map(chunk => {
@@ -40,6 +42,7 @@ const binaryToText = (binary) => {
 
 // Convert binary to DNA sequence
 const binaryToDNA = (binary) => {
+  console.log("Converting binary to DNA, binary length:", binary.length);
   // Ensure binary length is even
   const paddedBinary = binary.length % 2 === 0 ? binary : binary + '0';
   
@@ -49,6 +52,7 @@ const binaryToDNA = (binary) => {
 
 // Convert DNA sequence to binary
 const dnaToBinary = (dna) => {
+  console.log("Converting DNA to binary, DNA length:", dna.length);
   return dna.split('').map(nucleotide => {
     // Return the binary representation or default to '00' if nucleotide is invalid
     return reverseNucleotideMap[nucleotide] || '00';
@@ -77,8 +81,23 @@ const mutate = (dna, mutationRate = 0.01) => {
   }).join('');
 };
 
-// Generate a key from the secret key using genetic algorithm
+// Generate a key from the secret key
 const generateEncryptionKey = (secretKey, length) => {
+  console.log("Generating encryption key, target length:", length);
+  
+  // Convert secret key to a consistent hash
+  let hash = 0;
+  for (let i = 0; i < secretKey.length; i++) {
+    hash = ((hash << 5) - hash) + secretKey.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  
+  // Use hash as seed for the pseudo-random generator
+  const seededRandom = (max) => {
+    hash = (hash * 9301 + 49297) % 233280;
+    return (hash / 233280) * max;
+  };
+  
   // Convert secret key to initial DNA sequence
   const binaryKey = textToBinary(secretKey);
   let dnaKey = binaryToDNA(binaryKey);
@@ -86,82 +105,80 @@ const generateEncryptionKey = (secretKey, length) => {
   // Pad or truncate to desired length
   if (dnaKey.length < length) {
     while (dnaKey.length < length) {
-      dnaKey += dnaKey;
+      const padChar = ['A', 'G', 'C', 'T'][Math.floor(seededRandom(4))];
+      dnaKey += padChar;
     }
   }
   dnaKey = dnaKey.substring(0, length);
   
-  // Apply genetic algorithm operations
-  let population = [dnaKey];
-  for (let i = 0; i < 10; i++) {
-    // Generate new members through crossover
-    const newMembers = [];
-    for (let j = 0; j < population.length; j++) {
-      for (let k = j + 1; k < population.length; k++) {
-        const [offspring1, offspring2] = crossover(population[j], population[k]);
-        newMembers.push(offspring1, offspring2);
+  console.log("Generated encryption key length:", dnaKey.length);
+  return dnaKey;
+};
+
+// DNA XOR encryption/decryption - direct nucleotide substitution
+const dnaXOR = {
+  // Simple 1-to-1 substitution tables for each key nucleotide
+  'A': {'A': 'A', 'G': 'G', 'C': 'C', 'T': 'T'},
+  'G': {'A': 'G', 'G': 'A', 'C': 'T', 'T': 'C'},
+  'C': {'A': 'C', 'G': 'T', 'C': 'A', 'T': 'G'},
+  'T': {'A': 'T', 'G': 'C', 'C': 'G', 'T': 'A'}
+};
+
+// Reverse XOR for decryption
+const buildReverseXOR = () => {
+  const reverseXOR = {'A':{}, 'G':{}, 'C':{}, 'T':{}};
+  
+  for (const keyNucleotide in dnaXOR) {
+    for (const dataNucleotide in dnaXOR[keyNucleotide]) {
+      const result = dnaXOR[keyNucleotide][dataNucleotide];
+      if (!reverseXOR[keyNucleotide][result]) {
+        reverseXOR[keyNucleotide][result] = dataNucleotide;
       }
     }
-    
-    // Add new members to population
-    population = [...population, ...newMembers];
-    
-    // Apply mutation
-    population = population.map(dna => mutate(dna));
-    
-    // Select best members (simplified for this implementation)
-    population = population.slice(0, 5);
   }
   
-  // Use the "best" key (first one for simplicity)
-  return population[0].substring(0, length);
+  return reverseXOR;
 };
 
-// Define nucleotide pairing for DNA encryption/decryption
-const nucleotidePairs = {
-  'AA': 'A', 'AG': 'G', 'AC': 'C', 'AT': 'T',
-  'GA': 'G', 'GG': 'A', 'GC': 'T', 'GT': 'C',
-  'CA': 'C', 'CG': 'T', 'CC': 'A', 'CT': 'G',
-  'TA': 'T', 'TG': 'C', 'TC': 'G', 'TT': 'A'
-};
-
-// Create a reverse mapping for decryption
-const reverseNucleotidePairs = {};
-Object.keys(nucleotidePairs).forEach(pair => {
-  const [firstNucleotide, secondNucleotide] = pair.split('');
-  const result = nucleotidePairs[pair];
-  
-  if (!reverseNucleotidePairs[result]) {
-    reverseNucleotidePairs[result] = {};
-  }
-  
-  reverseNucleotidePairs[result][secondNucleotide] = firstNucleotide;
-});
+const reverseXOR = buildReverseXOR();
 
 // Add file format identifier and metadata
 const ENCRYPTION_HEADER = "GENECRYPT_V1";
 
-// Encrypt data using DNA encryption and genetic algorithm
+// Encrypt data using DNA encryption
 const encryptData = (data, secretKey) => {
+  console.log("Encrypting data with secret key, data length:", data.length);
+  
   // Convert data to binary and then to DNA
   const binaryData = textToBinary(data);
   const dnaData = binaryToDNA(binaryData);
+  console.log("DNA representation length:", dnaData.length);
   
   // Generate encryption key
   const encryptionKey = generateEncryptionKey(secretKey, dnaData.length);
   
-  // DNA encryption using nucleotide pairing
-  const encryptedDNA = dnaData.split('').map((nucleotide, index) => {
-    const keyNucleotide = encryptionKey[index % encryptionKey.length];
-    return nucleotidePairs[nucleotide + keyNucleotide] || 'A';
-  }).join('');
+  // DNA XOR encryption
+  let encryptedDNA = '';
+  for (let i = 0; i < dnaData.length; i++) {
+    const dataNucleotide = dnaData[i];
+    const keyNucleotide = encryptionKey[i % encryptionKey.length];
+    
+    if (dnaXOR[keyNucleotide] && dnaXOR[keyNucleotide][dataNucleotide]) {
+      encryptedDNA += dnaXOR[keyNucleotide][dataNucleotide];
+    } else {
+      // Fallback if invalid nucleotides
+      encryptedDNA += dataNucleotide;
+    }
+  }
   
   // Add header for verification during decryption
   return `${ENCRYPTION_HEADER}:${encryptedDNA}`;
 };
 
-// Decrypt data using DNA decryption and genetic algorithm
+// Decrypt data using DNA decryption
 const decryptData = (encryptedData, secretKey) => {
+  console.log("Decrypting data with secret key");
+  
   // Verify and remove header
   if (!encryptedData.startsWith(ENCRYPTION_HEADER)) {
     console.error("Invalid encrypted data format - missing header");
@@ -173,20 +190,19 @@ const decryptData = (encryptedData, secretKey) => {
   
   // Generate the same encryption key using the secret key
   const encryptionKey = generateEncryptionKey(secretKey, encryptedDNA.length);
+  console.log("Generated decryption key length:", encryptionKey.length);
   
-  // DNA decryption using reverse nucleotide pairing
+  // DNA XOR decryption
   let decryptedDNA = '';
   for (let i = 0; i < encryptedDNA.length; i++) {
     const encryptedNucleotide = encryptedDNA[i];
     const keyNucleotide = encryptionKey[i % encryptionKey.length];
     
-    // Use the reverse mapping to find the original nucleotide
-    if (reverseNucleotidePairs[encryptedNucleotide] && 
-        reverseNucleotidePairs[encryptedNucleotide][keyNucleotide]) {
-      decryptedDNA += reverseNucleotidePairs[encryptedNucleotide][keyNucleotide];
+    if (reverseXOR[keyNucleotide] && reverseXOR[keyNucleotide][encryptedNucleotide]) {
+      decryptedDNA += reverseXOR[keyNucleotide][encryptedNucleotide];
     } else {
-      // Default to 'A' if mapping is not found
-      decryptedDNA += 'A';
+      // Fallback if invalid nucleotides
+      decryptedDNA += encryptedNucleotide;
     }
   }
   
@@ -195,6 +211,7 @@ const decryptData = (encryptedData, secretKey) => {
   // Convert DNA back to binary and then to text
   const decryptedBinary = dnaToBinary(decryptedDNA);
   const decryptedText = binaryToText(decryptedBinary);
+  console.log("Decrypted text length:", decryptedText.length);
   
   return decryptedText;
 };
@@ -312,4 +329,9 @@ export const processFile = async (file, secretKey, isEncrypt, fileType) => {
   } else {
     throw new Error('Unsupported file type');
   }
+};
+
+// Added utility to decode encrypted string (for testing)
+export const decodeEncryptedString = (encryptedString, secretKey) => {
+  return decryptData(encryptedString, secretKey);
 };
