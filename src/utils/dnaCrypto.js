@@ -49,7 +49,10 @@ const binaryToDNA = (binary) => {
 
 // Convert DNA sequence to binary
 const dnaToBinary = (dna) => {
-  return dna.split('').map(nucleotide => reverseNucleotideMap[nucleotide] || '00').join('');
+  return dna.split('').map(nucleotide => {
+    // Return the binary representation or default to '00' if nucleotide is invalid
+    return reverseNucleotideMap[nucleotide] || '00';
+  }).join('');
 };
 
 // Genetic Algorithm operations
@@ -114,75 +117,86 @@ const generateEncryptionKey = (secretKey, length) => {
   return population[0].substring(0, length);
 };
 
+// Define nucleotide pairing for DNA encryption/decryption
+const nucleotidePairs = {
+  'AA': 'A', 'AG': 'G', 'AC': 'C', 'AT': 'T',
+  'GA': 'G', 'GG': 'A', 'GC': 'T', 'GT': 'C',
+  'CA': 'C', 'CG': 'T', 'CC': 'A', 'CT': 'G',
+  'TA': 'T', 'TG': 'C', 'TC': 'G', 'TT': 'A'
+};
+
+// Create a reverse mapping for decryption
+const reverseNucleotidePairs = {};
+Object.keys(nucleotidePairs).forEach(pair => {
+  const [firstNucleotide, secondNucleotide] = pair.split('');
+  const result = nucleotidePairs[pair];
+  
+  if (!reverseNucleotidePairs[result]) {
+    reverseNucleotidePairs[result] = {};
+  }
+  
+  reverseNucleotidePairs[result][secondNucleotide] = firstNucleotide;
+});
+
+// Add file format identifier and metadata
+const ENCRYPTION_HEADER = "GENECRYPT_V1";
+
 // Encrypt data using DNA encryption and genetic algorithm
 const encryptData = (data, secretKey) => {
+  // Convert data to binary and then to DNA
   const binaryData = textToBinary(data);
   const dnaData = binaryToDNA(binaryData);
   
   // Generate encryption key
   const encryptionKey = generateEncryptionKey(secretKey, dnaData.length);
   
-  // XOR-like operation for DNA (simplified)
+  // DNA encryption using nucleotide pairing
   const encryptedDNA = dnaData.split('').map((nucleotide, index) => {
     const keyNucleotide = encryptionKey[index % encryptionKey.length];
-    // Simple mapping rule for combining nucleotides
-    const pairs = {
-      'AA': 'A', 'AG': 'G', 'AC': 'C', 'AT': 'T',
-      'GA': 'G', 'GG': 'A', 'GC': 'T', 'GT': 'C',
-      'CA': 'C', 'CG': 'T', 'CC': 'A', 'CT': 'G',
-      'TA': 'T', 'TG': 'C', 'TC': 'G', 'TT': 'A'
-    };
-    return pairs[nucleotide + keyNucleotide] || 'A';
+    return nucleotidePairs[nucleotide + keyNucleotide] || 'A';
   }).join('');
   
-  // Add a verification header to ensure we can validate decryption later
-  const salt = "_GENECRYPT_SALT_";
-  return salt + encryptedDNA;
+  // Add header for verification during decryption
+  return `${ENCRYPTION_HEADER}:${encryptedDNA}`;
 };
 
 // Decrypt data using DNA decryption and genetic algorithm
 const decryptData = (encryptedData, secretKey) => {
-  // Check if the data has our verification header
-  const salt = "_GENECRYPT_SALT_";
-  let encryptedDNA = encryptedData;
-  
-  if (encryptedData.startsWith(salt)) {
-    encryptedDNA = encryptedData.substring(salt.length);
+  // Verify and remove header
+  if (!encryptedData.startsWith(ENCRYPTION_HEADER)) {
+    console.error("Invalid encrypted data format - missing header");
+    throw new Error("Invalid encrypted data format");
   }
   
-  // Generate the same encryption key
+  const encryptedDNA = encryptedData.substring(ENCRYPTION_HEADER.length + 1);
+  console.log("Encrypted DNA length:", encryptedDNA.length);
+  
+  // Generate the same encryption key using the secret key
   const encryptionKey = generateEncryptionKey(secretKey, encryptedDNA.length);
   
-  // Create the decryption mapping based on the encryption rules
-  const decryptionMap = {};
-  const pairs = {
-    'A': { 'A': 'A', 'G': 'G', 'C': 'C', 'T': 'T' },
-    'G': { 'A': 'G', 'G': 'A', 'C': 'T', 'T': 'C' },
-    'C': { 'A': 'C', 'G': 'T', 'C': 'A', 'T': 'G' },
-    'T': { 'A': 'T', 'G': 'C', 'C': 'G', 'T': 'A' }
-  };
-  
-  // Pre-compute the reverse mapping for faster lookup
-  for (const orig in pairs) {
-    for (const key in pairs[orig]) {
-      const encrypted = pairs[orig][key];
-      if (!decryptionMap[encrypted]) {
-        decryptionMap[encrypted] = {};
-      }
-      decryptionMap[encrypted][key] = orig;
+  // DNA decryption using reverse nucleotide pairing
+  let decryptedDNA = '';
+  for (let i = 0; i < encryptedDNA.length; i++) {
+    const encryptedNucleotide = encryptedDNA[i];
+    const keyNucleotide = encryptionKey[i % encryptionKey.length];
+    
+    // Use the reverse mapping to find the original nucleotide
+    if (reverseNucleotidePairs[encryptedNucleotide] && 
+        reverseNucleotidePairs[encryptedNucleotide][keyNucleotide]) {
+      decryptedDNA += reverseNucleotidePairs[encryptedNucleotide][keyNucleotide];
+    } else {
+      // Default to 'A' if mapping is not found
+      decryptedDNA += 'A';
     }
   }
   
-  const decryptedDNA = encryptedDNA.split('').map((nucleotide, index) => {
-    const keyNucleotide = encryptionKey[index % encryptionKey.length];
-    
-    // Use the pre-computed mapping to find the original nucleotide
-    return (decryptionMap[nucleotide] && decryptionMap[nucleotide][keyNucleotide]) || 'A';
-  }).join('');
+  console.log("Decrypted DNA length:", decryptedDNA.length);
   
-  // Convert back to binary and then to text
+  // Convert DNA back to binary and then to text
   const decryptedBinary = dnaToBinary(decryptedDNA);
-  return binaryToText(decryptedBinary);
+  const decryptedText = binaryToText(decryptedBinary);
+  
+  return decryptedText;
 };
 
 // Process files for encryption and decryption
@@ -191,13 +205,14 @@ const processTextFile = async (file, secretKey, isEncrypt) => {
   const text = await file.text();
   
   if (isEncrypt) {
+    console.log("Encrypting text with length:", text.length);
     const encryptedDNA = encryptData(text, secretKey);
+    console.log("Encrypted data length:", encryptedDNA.length);
     return { data: encryptedDNA, type: 'text/plain', filename: `${file.name}.encrypted` };
   } else {
-    console.log("Decrypting text with secret key: [secret]");
-    console.log("File content length:", text.length);
+    console.log("Decrypting text with length:", text.length);
     const decryptedText = decryptData(text, secretKey);
-    console.log("Decrypted length:", decryptedText.length);
+    console.log("Decrypted text length:", decryptedText.length);
     return { data: decryptedText, type: 'text/plain', filename: file.name.replace('.encrypted', '') };
   }
 };
@@ -214,18 +229,27 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
         ''
       )
     );
+    console.log("Image base64 length before encryption:", base64.length);
     
     const encryptedDNA = encryptData(base64, secretKey);
-    return { data: encryptedDNA, type: 'text/plain', filename: `${file.name}.encrypted` };
+    console.log("Encrypted image data length:", encryptedDNA.length);
+    return { 
+      data: encryptedDNA, 
+      type: 'text/plain', 
+      filename: `${file.name}.encrypted`, 
+      originalType: file.type  // Store original type for decryption
+    };
   } else {
     // For decryption, read the encrypted content
     const encryptedContent = await file.text();
-    console.log("Decrypting image file...");
+    console.log("Decrypting image file, encrypted length:", encryptedContent.length);
+    
     const decryptedBase64 = decryptData(encryptedContent, secretKey);
+    console.log("Decrypted base64 length:", decryptedBase64.length);
     
     return { 
       data: decryptedBase64, 
-      type: 'image/png', // Default to png, but ideally we should store the original type
+      type: 'image/png', // Default to png, user can rename as needed
       filename: file.name.replace('.encrypted', ''),
       isBase64: true
     };
@@ -244,18 +268,27 @@ const processAudioFile = async (file, secretKey, isEncrypt) => {
         ''
       )
     );
+    console.log("Audio base64 length before encryption:", base64.length);
     
     const encryptedDNA = encryptData(base64, secretKey);
-    return { data: encryptedDNA, type: 'text/plain', filename: `${file.name}.encrypted` };
+    console.log("Encrypted audio data length:", encryptedDNA.length);
+    return { 
+      data: encryptedDNA, 
+      type: 'text/plain', 
+      filename: `${file.name}.encrypted`,
+      originalType: file.type  // Store original type for decryption
+    };
   } else {
     // For decryption, read the encrypted content
     const encryptedContent = await file.text();
-    console.log("Decrypting audio file...");
+    console.log("Decrypting audio file, encrypted length:", encryptedContent.length);
+    
     const decryptedBase64 = decryptData(encryptedContent, secretKey);
+    console.log("Decrypted base64 length:", decryptedBase64.length);
     
     return { 
       data: decryptedBase64, 
-      type: 'audio/mpeg', // Default to mp3, but ideally we should store the original type
+      type: 'audio/mpeg', // Default to mp3, user can rename as needed
       filename: file.name.replace('.encrypted', ''),
       isBase64: true
     };

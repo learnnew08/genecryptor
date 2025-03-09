@@ -49,7 +49,7 @@ const DecryptionCard = () => {
     } catch (err) {
       console.error("Decryption error:", err);
       setIsProcessing(false);
-      setError(err.message || "Failed to decrypt file. Make sure you're using the correct secret key.");
+      setError(err.message || "Failed to decrypt file. Make sure you're using the correct secret key and that this is a valid encrypted file.");
       toast.error("Failed to decrypt file: " + (err.message || "Invalid secret key or file format"));
     }
   };
