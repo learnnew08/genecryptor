@@ -4,7 +4,7 @@ import { KeyRound, Check, Info, AlertTriangle } from 'lucide-react';
 import FileUpload from './FileUpload';
 import KeyInput from './KeyInput';
 import ProcessingAnimation from './ProcessingAnimation';
-import { processFile, decodeEncryptedString } from '../utils/dnaCrypto';
+import { processFile, decodeEncryptedString } from '../utils/dna-crypto';
 import { downloadFile } from '../utils/fileHelpers';
 import { toast } from 'sonner';
 

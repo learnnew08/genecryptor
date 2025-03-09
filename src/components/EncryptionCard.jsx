@@ -4,7 +4,7 @@ import { Lock, Check, Info, AlertTriangle } from 'lucide-react';
 import FileUpload from './FileUpload';
 import KeyInput from './KeyInput';
 import ProcessingAnimation from './ProcessingAnimation';
-import { processFile } from '../utils/dnaCrypto';
+import { processFile } from '../utils/dna-crypto';
 import { downloadFile, validateFileType } from '../utils/fileHelpers';
 import { toast } from 'sonner';
 
