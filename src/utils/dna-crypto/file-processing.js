@@ -33,28 +33,68 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
     );
     console.log("Image base64 length before encryption:", base64.length);
     
+    // Store the image mime type
+    const originalType = file.type;
+    console.log("Original image type:", originalType);
+    
     const encryptedDNA = encryptData(base64, secretKey);
     console.log("Encrypted image data length:", encryptedDNA.length);
+    
+    // Include metadata in the encrypted content
+    const metadataString = JSON.stringify({ type: originalType });
+    const encodedMetadata = btoa(metadataString);
+    const dataWithMetadata = `${encodedMetadata}:${encryptedDNA}`;
+    
     return { 
-      data: encryptedDNA, 
+      data: dataWithMetadata, 
       type: 'text/plain', 
-      filename: `${file.name}.encrypted`, 
-      originalType: file.type  // Store original type for decryption
+      filename: `${file.name}.encrypted`
     };
   } else {
-    // For decryption, read the encrypted content
+    // For decryption, read the encrypted content with metadata
     const encryptedContent = await file.text();
     console.log("Decrypting image file, encrypted length:", encryptedContent.length);
     
-    const decryptedBase64 = decryptData(encryptedContent, secretKey);
-    console.log("Decrypted base64 length:", decryptedBase64.length);
-    
-    return { 
-      data: decryptedBase64, 
-      type: 'image/png', // Default to png, user can rename as needed
-      filename: file.name.replace('.encrypted', ''),
-      isBase64: true
-    };
+    try {
+      // Parse metadata and encrypted data
+      const [encodedMetadata, encryptedData] = encryptedContent.includes(':') ? 
+                                              encryptedContent.split(':', 2) : 
+                                              [null, encryptedContent];
+                                              
+      let imageType = 'image/png'; // Default
+      
+      // Try to decode metadata if available
+      if (encodedMetadata && !encodedMetadata.startsWith('GENECRYPT_V1')) {
+        try {
+          const metadataString = atob(encodedMetadata);
+          const metadata = JSON.parse(metadataString);
+          imageType = metadata.type || imageType;
+          console.log("Extracted image type from metadata:", imageType);
+        } catch (e) {
+          console.warn("Could not parse metadata, using default image type:", imageType);
+        }
+      }
+      
+      // Handle case where there's no metadata but has GENECRYPT_V1 header
+      const actualData = encryptedData.startsWith('GENECRYPT_V1') ? 
+                        encryptedData : 
+                        encryptedContent.startsWith('GENECRYPT_V1') ? 
+                        encryptedContent : 
+                        `GENECRYPT_V1:${encryptedContent}`;
+      
+      const decryptedBase64 = decryptData(actualData, secretKey);
+      console.log("Decrypted base64 length:", decryptedBase64.length);
+      
+      return { 
+        data: decryptedBase64, 
+        type: imageType,
+        filename: file.name.replace('.encrypted', ''),
+        isBase64: true
+      };
+    } catch (error) {
+      console.error("Error during image decryption:", error);
+      throw new Error(`Failed to decrypt image: ${error.message}`);
+    }
   }
 };
 

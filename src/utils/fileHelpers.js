@@ -8,7 +8,12 @@ export const downloadFile = (data, filename, type, isBase64 = false) => {
   if (isBase64) {
     // For base64 encoded data (images, audio)
     try {
-      blob = dataURItoBlob(`data:${type};base64,${data}`);
+      // Make sure the data is properly formatted as a data URI
+      const dataURI = data.startsWith('data:') ? 
+                     data : 
+                     `data:${type};base64,${data}`;
+                     
+      blob = dataURItoBlob(dataURI);
       console.log("Created blob from base64 data, size:", blob.size);
     } catch (error) {
       console.error("Error creating blob from base64:", error);
