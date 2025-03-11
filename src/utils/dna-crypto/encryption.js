@@ -1,76 +1,70 @@
 
-import { ENCRYPTION_HEADER } from './constants.js';
-import { textToBinary, binaryToDNA, dnaToBinary, binaryToText } from './conversion.js';
-import { generateEncryptionKey } from './genetic.js';
-import { dnaXOR, reverseXOR } from './xor.js';
+// DNA Encryption Algorithms
+import { dnaToAscii, asciiToDNA } from './conversion.js';
+import { applyGeneticAlgorithm } from './genetic.js';
+import { dnaXOR } from './xor.js';
+import { DNA_BASES, KEY_LENGTH_MIN } from './constants.js';
 
-// Encrypt data using DNA encryption
-export const encryptData = (data, secretKey) => {
-  console.log("Encrypting data with secret key, data length:", data.length);
-  
-  // Convert data to binary and then to DNA
-  const binaryData = textToBinary(data);
-  const dnaData = binaryToDNA(binaryData);
-  console.log("DNA representation length:", dnaData.length);
-  
-  // Generate encryption key
-  const encryptionKey = generateEncryptionKey(secretKey, dnaData.length);
-  
-  // DNA XOR encryption
-  let encryptedDNA = '';
-  for (let i = 0; i < dnaData.length; i++) {
-    const dataNucleotide = dnaData[i];
-    const keyNucleotide = encryptionKey[i % encryptionKey.length];
-    
-    if (dnaXOR[keyNucleotide] && dnaXOR[keyNucleotide][dataNucleotide]) {
-      encryptedDNA += dnaXOR[keyNucleotide][dataNucleotide];
-    } else {
-      // Fallback if invalid nucleotides
-      encryptedDNA += dataNucleotide;
-    }
+/**
+ * Encrypts a string using DNA-based cryptography
+ * @param {string} input - Plain text to encrypt
+ * @param {string} key - Secret key
+ * @returns {string} - Encrypted text
+ */
+export const encryptWithDNA = (input, key) => {
+  if (!input || !key) {
+    throw new Error('Input and key are required');
   }
   
-  // Add header for verification during decryption
-  return `${ENCRYPTION_HEADER}:${encryptedDNA}`;
+  if (key.length < KEY_LENGTH_MIN) {
+    throw new Error(`Key must be at least ${KEY_LENGTH_MIN} characters long`);
+  }
+  
+  try {
+    // Convert input to DNA sequence
+    const dnaSequence = asciiToDNA(input);
+    
+    // Apply genetic algorithm to strengthen encryption
+    const evolvedSequence = applyGeneticAlgorithm(dnaSequence, key);
+    
+    // Apply XOR with the key
+    const encryptedSequence = dnaXOR(evolvedSequence, key);
+    
+    // Return base64 encoded result for safe transmission
+    return btoa(encryptedSequence);
+  } catch (error) {
+    console.error('Encryption failed:', error);
+    throw new Error('Encryption failed: ' + error.message);
+  }
 };
 
-// Decrypt data using DNA decryption
-export const decryptData = (encryptedData, secretKey) => {
-  console.log("Decrypting data with secret key");
-  
-  // Verify and remove header
-  if (!encryptedData.startsWith(ENCRYPTION_HEADER)) {
-    console.error("Invalid encrypted data format - missing header");
-    throw new Error("Invalid encrypted data format");
+/**
+ * Decrypts a string using DNA-based cryptography
+ * @param {string} encrypted - Encrypted text
+ * @param {string} key - Secret key
+ * @returns {string} - Decrypted plain text
+ */
+export const decryptWithDNA = (encrypted, key) => {
+  if (!encrypted || !key) {
+    throw new Error('Encrypted text and key are required');
   }
   
-  const encryptedDNA = encryptedData.substring(ENCRYPTION_HEADER.length + 1);
-  console.log("Encrypted DNA length:", encryptedDNA.length);
-  
-  // Generate the same encryption key using the secret key
-  const encryptionKey = generateEncryptionKey(secretKey, encryptedDNA.length);
-  console.log("Generated decryption key length:", encryptionKey.length);
-  
-  // DNA XOR decryption
-  let decryptedDNA = '';
-  for (let i = 0; i < encryptedDNA.length; i++) {
-    const encryptedNucleotide = encryptedDNA[i];
-    const keyNucleotide = encryptionKey[i % encryptionKey.length];
+  try {
+    // Decode from base64
+    const encryptedSequence = atob(encrypted);
     
-    if (reverseXOR[keyNucleotide] && reverseXOR[keyNucleotide][encryptedNucleotide]) {
-      decryptedDNA += reverseXOR[keyNucleotide][encryptedNucleotide];
-    } else {
-      // Fallback if invalid nucleotides
-      decryptedDNA += encryptedNucleotide;
-    }
+    // Reverse XOR with the key
+    const evolvedSequence = dnaXOR(encryptedSequence, key);
+    
+    // Reverse genetic algorithm effects
+    const dnaSequence = applyGeneticAlgorithm(evolvedSequence, key, true);
+    
+    // Convert DNA back to ASCII
+    const decrypted = dnaToAscii(dnaSequence);
+    
+    return decrypted;
+  } catch (error) {
+    console.error('Decryption failed:', error);
+    throw new Error('Decryption failed: ' + error.message);
   }
-  
-  console.log("Decrypted DNA length:", decryptedDNA.length);
-  
-  // Convert DNA back to binary and then to text
-  const decryptedBinary = dnaToBinary(decryptedDNA);
-  const decryptedText = binaryToText(decryptedBinary);
-  console.log("Decrypted text length:", decryptedText.length);
-  
-  return decryptedText;
 };

@@ -1,12 +1,24 @@
 
-// Main entry point for DNA cryptography module
-import { processFile } from './file-processing.js';
-import { encryptData, decryptData } from './encryption.js';
+// Main export file for DNA Cryptography utilities
+import { encryptWithDNA, decryptWithDNA } from './encryption.js';
+import { processFile, extractFileContent } from './file-processing.js';
+import { asciiToDNA, dnaToAscii } from './conversion.js';
 
-// Export decoding utility for string decryption (for testing)
-export const decodeEncryptedString = (encryptedString, secretKey) => {
-  return decryptData(encryptedString, secretKey);
+// Function to decode an encrypted string for direct string decryption
+export const decodeEncryptedString = (encrypted, key) => {
+  try {
+    return decryptWithDNA(encrypted, key);
+  } catch (error) {
+    throw new Error('Failed to decode string: ' + error.message);
+  }
 };
 
-// Export main functions
-export { processFile, encryptData, decryptData };
+// Export all necessary functions
+export {
+  encryptWithDNA,
+  decryptWithDNA,
+  processFile,
+  extractFileContent,
+  asciiToDNA,
+  dnaToAscii
+};
