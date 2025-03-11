@@ -33,14 +33,11 @@ const Index = () => {
         <section className="py-20 px-6 md:px-8 bg-gradient-to-b from-white to-slate-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <span className="px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-medium inline-block mb-4">
-                Secure Your Data
-              </span>
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">
                 DNA-Based Cryptography Tools
               </h2>
               <p className="text-slate-600 max-w-2xl mx-auto text-lg">
-                Use our advanced genetic algorithms and DNA encoding to protect your sensitive information with encryption that evolves beyond traditional methods.
+                Use our advanced genetic algorithms and DNA encoding to protect your sensitive information.
               </p>
             </div>
             
@@ -55,9 +52,6 @@ const Index = () => {
         <section className="py-24 px-6 md:px-8 bg-slate-50">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <span className="px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium inline-block mb-4">
-                The Technology
-              </span>
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">
                 How GeneCrypt Works
               </h2>
@@ -114,24 +108,6 @@ const Index = () => {
           </div>
         </section>
       </main>
-      
-      {/* Footer */}
-      <footer className="py-12 px-6 md:px-8 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-6 md:mb-0">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-blue-400" />
-              </div>
-              <span className="text-xl font-bold tracking-tight">GeneCrypt</span>
-            </div>
-            
-            <p className="text-slate-400 text-sm text-center md:text-right">
-              © {new Date().getFullYear()} GeneCrypt. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
       
       {showScrollTop && (
         <button
