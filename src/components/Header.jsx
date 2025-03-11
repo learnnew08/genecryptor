@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Menu, X } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -15,10 +14,6 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
-  
-  // Removed nav links completely as per user request
   
   return (
     <header 
@@ -26,7 +21,7 @@ const Header = () => {
         isScrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="max-w-7xl mx-auto">
         <Link 
           to="/" 
           className="flex items-center gap-2 group"
@@ -38,13 +33,7 @@ const Header = () => {
             GeneCrypt
           </div>
         </Link>
-        
-        {/* Removed desktop navigation */}
-        
-        {/* Mobile Menu Button - removed as navigation links are removed */}
       </div>
-      
-      {/* Removed Mobile Navigation */}
     </header>
   );
 };
