@@ -19,10 +19,8 @@ const Header = () => {
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   
   const navLinks = [
-    { name: "Home", href: "#" },
-    { name: "Features", href: "#" },
-    { name: "How it Works", href: "#how-it-works" },
-    { name: "About", href: "#" }
+    { name: "DNA Encryption", href: "#crypto-tools" },
+    { name: "Technology", href: "#how-it-works" }
   ];
 
   return (
@@ -57,15 +55,6 @@ const Header = () => {
           ))}
         </nav>
         
-        <div className="hidden md:flex items-center gap-4">
-          <a 
-            href="#crypto-tools" 
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-5 rounded-lg text-sm font-medium transition-colors duration-300"
-          >
-            Try Encryption
-          </a>
-        </div>
-        
         {/* Mobile Menu Button */}
         <button
           className="md:hidden text-slate-700 focus:outline-none"
@@ -93,13 +82,6 @@ const Header = () => {
                 {link.name}
               </a>
             ))}
-            <a 
-              href="#crypto-tools"
-              onClick={() => setMobileMenuOpen(false)} 
-              className="block bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors text-center mt-4"
-            >
-              Try Encryption
-            </a>
           </div>
         </div>
       )}
