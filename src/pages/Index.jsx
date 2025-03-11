@@ -30,7 +30,7 @@ const Index = () => {
       
       <main className="flex-grow pt-24">
         {/* Encryption/Decryption Section */}
-        <section id="crypto-tools" className="py-20 px-6 md:px-8 bg-gradient-to-b from-white to-slate-50">
+        <section className="py-20 px-6 md:px-8 bg-gradient-to-b from-white to-slate-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <span className="px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-medium inline-block mb-4">
@@ -52,7 +52,7 @@ const Index = () => {
         </section>
         
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-24 px-6 md:px-8 bg-slate-50">
+        <section className="py-24 px-6 md:px-8 bg-slate-50">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <span className="px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium inline-block mb-4">

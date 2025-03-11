@@ -18,11 +18,8 @@ const Header = () => {
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   
-  const navLinks = [
-    { name: "DNA Encryption", href: "#crypto-tools" },
-    { name: "Technology", href: "#how-it-works" }
-  ];
-
+  // Removed nav links completely as per user request
+  
   return (
     <header 
       className={`w-full py-4 px-6 md:px-8 fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -42,49 +39,12 @@ const Header = () => {
           </div>
         </Link>
         
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-slate-700 hover:text-blue-600 transition-colors duration-300 font-medium"
-            >
-              {link.name}
-            </a>
-          ))}
-        </nav>
+        {/* Removed desktop navigation */}
         
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden text-slate-700 focus:outline-none"
-          onClick={toggleMobileMenu}
-        >
-          {mobileMenuOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
-        </button>
+        {/* Mobile Menu Button - removed as navigation links are removed */}
       </div>
       
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-sm animate-fade-in">
-          <div className="py-4 px-6 space-y-3">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="block py-2 text-slate-700 hover:text-blue-600 transition-colors font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.name}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Removed Mobile Navigation */}
     </header>
   );
 };
