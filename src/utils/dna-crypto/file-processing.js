@@ -82,7 +82,7 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
                         encryptedContent : 
                         `GENECRYPT_V1:${encryptedContent}`;
       
-      const decryptedBase64 = decryptData(actualData, secretKey);
+      const decryptedBase64 = decryptData(actualData, key);
       console.log("Decrypted base64 length:", decryptedBase64.length);
       
       return { 
@@ -153,5 +153,20 @@ export const processFile = async (file, secretKey, isEncrypt, fileType) => {
     return processAudioFile(file, secretKey, isEncrypt);
   } else {
     throw new Error('Unsupported file type');
+  }
+};
+
+// Add the missing extractFileContent function
+export const extractFileContent = async (file) => {
+  try {
+    if (!file) {
+      throw new Error('No file provided');
+    }
+    
+    const content = await file.text();
+    return content;
+  } catch (error) {
+    console.error('Error extracting file content:', error);
+    throw new Error('Failed to extract file content: ' + error.message);
   }
 };

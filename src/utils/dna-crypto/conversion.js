@@ -43,3 +43,16 @@ export const dnaToBinary = (dna) => {
     return reverseNucleotideMap[nucleotide] || '00';
   }).join('');
 };
+
+// Add the missing exports
+// Convert ASCII text to DNA sequence
+export const asciiToDNA = (text) => {
+  const binary = textToBinary(text);
+  return binaryToDNA(binary);
+};
+
+// Convert DNA sequence to ASCII text
+export const dnaToAscii = (dna) => {
+  const binary = dnaToBinary(dna);
+  return binaryToText(binary);
+};

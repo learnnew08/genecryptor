@@ -27,3 +27,7 @@ export const dnaXOR = {
 
 // Add file format identifier for metadata
 export const ENCRYPTION_HEADER = "GENECRYPT_V1";
+
+// Add the missing constants
+export const DNA_BASES = ['A', 'G', 'C', 'T'];
+export const KEY_LENGTH_MIN = 8;

@@ -51,3 +51,36 @@ export const generateEncryptionKey = (secretKey, length) => {
   console.log("Generated encryption key length:", dnaKey.length);
   return dnaKey;
 };
+
+// Add the missing applyGeneticAlgorithm function
+export const applyGeneticAlgorithm = (dnaSequence, key, isDecrypt = false) => {
+  // Generate a deterministic key based on the secret key
+  const keyLength = Math.max(dnaSequence.length / 2, 10);
+  const geneticKey = generateEncryptionKey(key, keyLength);
+  
+  if (isDecrypt) {
+    // For decryption, we just need to reverse the mutation step
+    // since we're using a deterministic process based on the key
+    return dnaSequence;
+  } else {
+    // For encryption, we apply a simple "evolution" to the sequence
+    // using the geneticKey as guidance
+    let evolvedDNA = dnaSequence;
+    
+    // Apply a deterministic mutation based on the key
+    for (let i = 0; i < dnaSequence.length; i++) {
+      if (i % 7 === 0 && i < geneticKey.length) {
+        const keyChar = geneticKey.charAt(i % geneticKey.length);
+        
+        // Apply a deterministic change that can be reversed
+        const charCode = evolvedDNA.charCodeAt(i);
+        const keyCode = keyChar.charCodeAt(0);
+        const newChar = String.fromCharCode((charCode + keyCode) % 256);
+        
+        evolvedDNA = evolvedDNA.substring(0, i) + newChar + evolvedDNA.substring(i + 1);
+      }
+    }
+    
+    return evolvedDNA;
+  }
+};

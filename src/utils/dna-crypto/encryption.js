@@ -68,3 +68,12 @@ export const decryptWithDNA = (encrypted, key) => {
     throw new Error('Decryption failed: ' + error.message);
   }
 };
+
+// Add the missing encryptData and decryptData functions used in file-processing.js
+export const encryptData = (data, key) => {
+  return encryptWithDNA(data, key);
+};
+
+export const decryptData = (encryptedData, key) => {
+  return decryptWithDNA(encryptedData, key);
+};
