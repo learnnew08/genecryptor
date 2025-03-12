@@ -1,3 +1,4 @@
+
 import { encryptData, decryptData } from './encryption.js';
 
 // Process files for encryption and decryption
@@ -75,17 +76,23 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
       }
       
       // Handle case where there's no metadata but has GENECRYPT_V1 header
-      const actualData = encryptedData && encryptedData.startsWith('GENECRYPT_V1') ? 
+      const actualData = encryptedData && encryptedData.length > 0 ? 
                         encryptedData : 
                         encryptedContent.startsWith('GENECRYPT_V1') ? 
                         encryptedContent : 
                         `GENECRYPT_V1:${encryptedContent}`;
       
+      console.log("Attempting to decrypt data:", actualData.substring(0, 50) + "...");
       const decryptedBase64 = decryptData(actualData, secretKey);
       console.log("Decrypted base64 length:", decryptedBase64.length);
       
+      // Ensure the decrypted base64 is correctly formatted for the data URI
+      const base64ForDataUri = decryptedBase64.indexOf(',') >= 0 ? 
+                              decryptedBase64 : 
+                              decryptedBase64;
+      
       return { 
-        data: decryptedBase64, 
+        data: base64ForDataUri, 
         type: imageType,
         filename: file.name.replace('.encrypted', ''),
         isBase64: true

@@ -31,7 +31,9 @@ export const encryptWithDNA = (input, key) => {
     const encryptedSequence = dnaXOR(evolvedSequence, key);
     
     // Return base64 encoded result for safe transmission
-    return btoa(encryptedSequence);
+    const safeEncoded = btoa(encryptedSequence);
+    console.log("Successfully encrypted with DNA, base64 length:", safeEncoded.length);
+    return safeEncoded;
   } catch (error) {
     console.error('Encryption failed:', error);
     throw new Error('Encryption failed: ' + error.message);
@@ -50,8 +52,26 @@ export const decryptWithDNA = (encrypted, key) => {
   }
   
   try {
-    // Decode from base64
-    const encryptedSequence = atob(encrypted);
+    // Check if it starts with protocol identifier
+    let encryptedContent = encrypted;
+    if (encrypted.startsWith('GENECRYPT_V1:')) {
+      encryptedContent = encrypted.substring(12); // Remove the prefix
+    }
+    
+    // Decode from base64, with error handling
+    let encryptedSequence;
+    try {
+      encryptedSequence = atob(encryptedContent);
+    } catch (e) {
+      console.error('Base64 decoding failed:', e);
+      // Check if string needs padding
+      const padded = encryptedContent.padEnd(Math.ceil(encryptedContent.length / 4) * 4, '=');
+      try {
+        encryptedSequence = atob(padded);
+      } catch (e2) {
+        throw new Error('Invalid base64 encoding in encrypted data');
+      }
+    }
     
     // Reverse XOR with the key
     const evolvedSequence = dnaXOR(encryptedSequence, key);

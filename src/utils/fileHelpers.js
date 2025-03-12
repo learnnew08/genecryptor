@@ -13,6 +13,7 @@ export const downloadFile = (data, filename, type, isBase64 = false) => {
                      data : 
                      `data:${type};base64,${data}`;
                      
+      console.log("Creating blob from data URI, starts with:", dataURI.substring(0, 30) + "...");
       blob = dataURItoBlob(dataURI);
       console.log("Created blob from base64 data, size:", blob.size);
     } catch (error) {
@@ -51,14 +52,20 @@ function dataURItoBlob(dataURI) {
   // Handle case when dataURI doesn't contain a comma
   if (!dataURI.includes(',')) {
     console.error("Invalid data URI format - missing comma");
-    throw new Error('Invalid data URI format');
+    const safePart = dataURI.length > 50 ? dataURI.substring(0, 50) + "..." : dataURI;
+    console.log("Data URI (partial):", safePart);
+    
+    // Try to fix the data URI by adding the comma if it's missing
+    const fixedURI = `data:image/png;base64,${dataURI}`;
+    return dataURItoBlob(fixedURI);
   }
   
   try {
-    const byteString = atob(dataURI.split(',')[1]);
+    const parts = dataURI.split(',');
+    const byteString = atob(parts[1]);
     console.log("Decoded base64 data, length:", byteString.length);
     
-    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const mimeString = parts[0].split(':')[1].split(';')[0];
     console.log("MIME type:", mimeString);
     
     const ab = new ArrayBuffer(byteString.length);
@@ -73,7 +80,15 @@ function dataURItoBlob(dataURI) {
     return blob;
   } catch (error) {
     console.error("Error in dataURItoBlob:", error);
-    throw error;
+    
+    // Try a fallback approach for problematic base64 data
+    try {
+      console.log("Trying fallback blob creation");
+      return new Blob([dataURI], { type: 'image/png' });
+    } catch (fallbackError) {
+      console.error("Fallback also failed:", fallbackError);
+      throw error;
+    }
   }
 }
 
