@@ -1,4 +1,3 @@
-
 import { encryptData, decryptData } from './encryption.js';
 
 // Process files for encryption and decryption
@@ -82,7 +81,7 @@ const processImageFile = async (file, secretKey, isEncrypt) => {
                         encryptedContent : 
                         `GENECRYPT_V1:${encryptedContent}`;
       
-      const decryptedBase64 = decryptData(actualData, key);
+      const decryptedBase64 = decryptData(actualData, secretKey);
       console.log("Decrypted base64 length:", decryptedBase64.length);
       
       return { 
