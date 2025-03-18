@@ -1,3 +1,4 @@
+
 import { encryptData, decryptData } from './encryption.js';
 
 // Process files for encryption and decryption
@@ -114,6 +115,7 @@ const processBinaryFile = async (file, secretKey, isEncrypt) => {
             const metadataJson = atob(parts[1]);
             metadata = JSON.parse(metadataJson);
             encryptedData = parts.slice(2).join(':');
+            console.log("Found metadata, file type:", metadata.type);
           } catch (e) {
             console.warn("Failed to parse metadata:", e);
             // If metadata parsing fails, use the whole content
@@ -284,7 +286,36 @@ export const processFile = async (file, secretKey, isEncrypt, fileType) => {
     ];
     
     if (binaryTypes.includes(file.type) && !file.name.endsWith('.encrypted')) {
+      console.log("Detected binary file type, using binary processing");
       return processBinaryFile(file, secretKey, isEncrypt);
+    }
+    
+    // For encrypted files being decrypted, we need to determine if they were binary files
+    if (file.name.endsWith('.encrypted') && !isEncrypt) {
+      try {
+        // Try to read the file to check for metadata
+        const content = await file.text();
+        if (content.startsWith('META:')) {
+          try {
+            const parts = content.split(':', 3);
+            if (parts.length >= 3) {
+              const metadataJson = atob(parts[1]);
+              const metadata = JSON.parse(metadataJson);
+              
+              // If it was a binary file, use binary processing
+              const binaryTypePattern = /application\/(pdf|msword|vnd\.openxmlformats)/;
+              if (metadata.type && binaryTypePattern.test(metadata.type)) {
+                console.log("Detected encrypted binary file based on metadata, using binary processing");
+                return processBinaryFile(file, secretKey, isEncrypt);
+              }
+            }
+          } catch (e) {
+            console.warn("Could not parse metadata for file type detection:", e);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not read file for type detection:", e);
+      }
     }
     
     // For text files and encrypted files being decrypted

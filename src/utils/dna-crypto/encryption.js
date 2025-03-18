@@ -56,22 +56,42 @@ export const decryptWithDNA = (encrypted, key) => {
     let encryptedContent = encrypted;
     if (encrypted.startsWith('GENECRYPT_V1:')) {
       encryptedContent = encrypted.substring(12); // Remove the prefix
+    } else if (encrypted.startsWith('META:')) {
+      // This shouldn't happen here since META should be processed earlier,
+      // but just in case, handle it
+      console.warn("Unexpected META prefix in decryptWithDNA");
+      const parts = encrypted.split(':', 3);
+      if (parts.length >= 3) {
+        encryptedContent = parts.slice(2).join(':');
+      }
     }
     
     // Decode from base64, with error handling
     let encryptedSequence;
     try {
+      // Try to detect if the string is properly encoded
       encryptedSequence = atob(encryptedContent);
+      console.log("Successfully decoded base64 with length:", encryptedSequence.length);
     } catch (e) {
       console.error('Base64 decoding failed:', e);
+      
       // Check if string needs padding
-      const padded = encryptedContent.padEnd(Math.ceil(encryptedContent.length / 4) * 4, '=');
       try {
+        // Add proper base64 padding
+        const missingPadding = encryptedContent.length % 4;
+        const padded = missingPadding ? 
+                      encryptedContent.padEnd(encryptedContent.length + (4 - missingPadding), '=') : 
+                      encryptedContent;
+        console.log("Trying with padded base64:", padded.substring(0, 50) + "...");
         encryptedSequence = atob(padded);
+        console.log("Padded base64 decoding succeeded, length:", encryptedSequence.length);
       } catch (e2) {
+        console.error("Padded base64 decoding also failed:", e2);
         throw new Error('Invalid base64 encoding in encrypted data');
       }
     }
+    
+    // Now we have the raw encrypted DNA sequence
     
     // Reverse XOR with the key
     const evolvedSequence = dnaXOR(encryptedSequence, key);
@@ -89,7 +109,7 @@ export const decryptWithDNA = (encrypted, key) => {
   }
 };
 
-// Add the missing encryptData and decryptData functions used in file-processing.js
+// Export the encryptData and decryptData functions used in file-processing.js
 export const encryptData = (data, key) => {
   return encryptWithDNA(data, key);
 };

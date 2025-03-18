@@ -10,14 +10,26 @@ export const downloadFile = (data, filename, type, isBase64 = false, isBinary = 
     try {
       if (isBinary) {
         // For binary data in base64 format (PDF, DOC, etc)
-        const byteString = atob(data);
-        const byteNumbers = new Array(byteString.length);
-        for (let i = 0; i < byteString.length; i++) {
-          byteNumbers[i] = byteString.charCodeAt(i);
+        try {
+          // Remove any data URI prefix if present
+          let cleanBase64 = data;
+          if (data.includes('base64,')) {
+            cleanBase64 = data.split('base64,')[1];
+          }
+          
+          // Try to decode the base64 data
+          const byteString = atob(cleanBase64);
+          const byteNumbers = new Array(byteString.length);
+          for (let i = 0; i < byteString.length; i++) {
+            byteNumbers[i] = byteString.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          blob = new Blob([byteArray], { type });
+          console.log("Created binary blob from base64, size:", blob.size, "type:", type);
+        } catch (error) {
+          console.error("Error in binary base64 conversion:", error);
+          throw error;
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        blob = new Blob([byteArray], { type });
-        console.log("Created binary blob from base64, size:", blob.size);
       } else {
         // For images and audio with data URI
         const dataURI = data.startsWith('data:') ? 
@@ -30,8 +42,7 @@ export const downloadFile = (data, filename, type, isBase64 = false, isBinary = 
       }
     } catch (error) {
       console.error("Error creating blob from base64:", error);
-      // Fallback to plain text if base64 conversion fails
-      blob = new Blob([data], { type: 'text/plain' });
+      throw new Error("Failed to create downloadable file: " + error.message);
     }
   } else {
     // For regular text data
