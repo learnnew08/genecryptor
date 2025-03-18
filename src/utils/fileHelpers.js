@@ -19,6 +19,8 @@ export const downloadFile = (data, filename, type, isBase64 = false, isBinary = 
           
           // Try to decode the base64 data
           const byteString = atob(cleanBase64);
+          console.log("Decoded binary data length:", byteString.length);
+          
           const byteNumbers = new Array(byteString.length);
           for (let i = 0; i < byteString.length; i++) {
             byteNumbers[i] = byteString.charCodeAt(i);
@@ -74,7 +76,7 @@ function dataURItoBlob(dataURI) {
   
   // Handle case when dataURI doesn't contain a comma
   if (!dataURI.includes(',')) {
-    console.error("Invalid data URI format - missing comma");
+    console.log("Invalid data URI format - missing comma");
     const safePart = dataURI.length > 50 ? dataURI.substring(0, 50) + "..." : dataURI;
     console.log("Data URI (partial):", safePart);
     

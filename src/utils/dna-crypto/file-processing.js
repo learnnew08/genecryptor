@@ -131,6 +131,9 @@ const processBinaryFile = async (file, secretKey, isEncrypt) => {
       const decryptedBase64 = decryptData(encryptedData, secretKey);
       console.log("Decrypted base64 length:", decryptedBase64.length);
       
+      // For PDF files we need special handling
+      const isPdf = metadata.type === 'application/pdf';
+      
       return { 
         data: decryptedBase64, 
         type: metadata.type,
@@ -276,16 +279,20 @@ export const processFile = async (file, secretKey, isEncrypt, fileType) => {
   
   console.log(`Processing ${fileType} file for ${isEncrypt ? 'encryption' : 'decryption'}`);
   
-  // Handle file based on type
-  if (fileType === 'text') {
-    // Check for PDF or DOC files which need binary processing
+  // Determine if PDF/DOC handling is needed
+  const isPdfOrDoc = (type) => {
     const binaryTypes = [
       'application/pdf', 
       'application/msword', 
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
-    
-    if (binaryTypes.includes(file.type) && !file.name.endsWith('.encrypted')) {
+    return binaryTypes.includes(type);
+  };
+  
+  // Handle file based on type
+  if (fileType === 'text') {
+    // Check for PDF or DOC files which need binary processing
+    if ((file.type && isPdfOrDoc(file.type)) && !file.name.endsWith('.encrypted')) {
       console.log("Detected binary file type, using binary processing");
       return processBinaryFile(file, secretKey, isEncrypt);
     }
@@ -303,8 +310,7 @@ export const processFile = async (file, secretKey, isEncrypt, fileType) => {
               const metadata = JSON.parse(metadataJson);
               
               // If it was a binary file, use binary processing
-              const binaryTypePattern = /application\/(pdf|msword|vnd\.openxmlformats)/;
-              if (metadata.type && binaryTypePattern.test(metadata.type)) {
+              if (metadata.type && isPdfOrDoc(metadata.type)) {
                 console.log("Detected encrypted binary file based on metadata, using binary processing");
                 return processBinaryFile(file, secretKey, isEncrypt);
               }
