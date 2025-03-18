@@ -2,20 +2,32 @@
 // File handling utilities
 
 // Create download link and trigger download
-export const downloadFile = (data, filename, type, isBase64 = false) => {
+export const downloadFile = (data, filename, type, isBase64 = false, isBinary = false) => {
   let blob;
   
   if (isBase64) {
-    // For base64 encoded data (images, audio)
+    // For base64 encoded data (images, audio, binary)
     try {
-      // Make sure the data is properly formatted as a data URI
-      const dataURI = data.startsWith('data:') ? 
-                     data : 
-                     `data:${type};base64,${data}`;
+      if (isBinary) {
+        // For binary data in base64 format (PDF, DOC, etc)
+        const byteString = atob(data);
+        const byteNumbers = new Array(byteString.length);
+        for (let i = 0; i < byteString.length; i++) {
+          byteNumbers[i] = byteString.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        blob = new Blob([byteArray], { type });
+        console.log("Created binary blob from base64, size:", blob.size);
+      } else {
+        // For images and audio with data URI
+        const dataURI = data.startsWith('data:') ? 
+                       data : 
+                       `data:${type};base64,${data}`;
                      
-      console.log("Creating blob from data URI, starts with:", dataURI.substring(0, 30) + "...");
-      blob = dataURItoBlob(dataURI);
-      console.log("Created blob from base64 data, size:", blob.size);
+        console.log("Creating blob from data URI, starts with:", dataURI.substring(0, 30) + "...");
+        blob = dataURItoBlob(dataURI);
+        console.log("Created blob from base64 data, size:", blob.size);
+      }
     } catch (error) {
       console.error("Error creating blob from base64:", error);
       // Fallback to plain text if base64 conversion fails
@@ -96,7 +108,16 @@ function dataURItoBlob(dataURI) {
 export const validateFileType = (file, selectedFileType) => {
   if (!file) return false;
   
-  const textTypes = ['text/plain', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  const textTypes = [
+    'text/plain', 
+    'application/pdf', 
+    'application/msword', 
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/csv',
+    'application/rtf',
+    'text/html',
+    'application/json'
+  ];
   const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
   const audioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'];
   

@@ -71,7 +71,7 @@ const DecryptionCard = () => {
       console.log("Decryption complete. Result type:", result.type);
       
       // Download the decrypted file
-      downloadFile(result.data, result.filename, result.type, result.isBase64);
+      downloadFile(result.data, result.filename, result.type, result.isBase64, result.isBinary);
       
       setIsProcessing(false);
       setIsComplete(true);

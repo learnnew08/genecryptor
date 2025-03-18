@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { FileUp, File, Image, Music, X, Lock } from 'lucide-react';
+import { FileUp, File, Image, Music, X, Lock, FileText } from 'lucide-react';
 import { validateFileType } from '../utils/fileHelpers';
 import { toast } from 'sonner';
 
@@ -11,7 +11,7 @@ const FileUpload = ({ fileType, onFileSelect }) => {
   const fileInputRef = useRef(null);
 
   const acceptMap = {
-    text: '.txt,.doc,.docx,.pdf,.encrypted',
+    text: '.txt,.doc,.docx,.pdf,.csv,.rtf,.html,.json,.encrypted',
     image: 'image/*,.encrypted',
     audio: 'audio/*,.encrypted'
   };
@@ -20,11 +20,26 @@ const FileUpload = ({ fileType, onFileSelect }) => {
     text: <File className="w-10 h-10 text-gray-400" />,
     image: <Image className="w-10 h-10 text-gray-400" />,
     audio: <Music className="w-10 h-10 text-gray-400" />,
-    encrypted: <Lock className="w-10 h-10 text-blue-500" />
+    encrypted: <Lock className="w-10 h-10 text-blue-500" />,
+    pdf: <FileText className="w-10 h-10 text-red-400" />,
+    doc: <FileText className="w-10 h-10 text-blue-400" />
+  };
+
+  const getFileIcon = (file) => {
+    if (file.name.endsWith('.encrypted')) {
+      return iconMap.encrypted;
+    }
+    if (file.type === 'application/pdf') {
+      return iconMap.pdf;
+    }
+    if (file.type.includes('word') || file.type.includes('msword')) {
+      return iconMap.doc;
+    }
+    return iconMap[fileType];
   };
 
   const typeText = {
-    text: 'text file',
+    text: 'document',
     image: 'image',
     audio: 'audio file'
   };
@@ -59,7 +74,7 @@ const FileUpload = ({ fileType, onFileSelect }) => {
     
     // Check if file is valid for the selected type (unless it's an encrypted file)
     if (!file.name.endsWith('.encrypted') && !validateFileType(file, fileType)) {
-      toast.error(`Selected file is not a valid ${fileType} file`);
+      toast.error(`Selected file is not a valid ${fileType} file type`);
       return;
     }
     
@@ -126,9 +141,7 @@ const FileUpload = ({ fileType, onFileSelect }) => {
             </div>
           ) : (
             <div className="mb-4">
-              {selectedFile.name.endsWith('.encrypted') 
-                ? iconMap.encrypted
-                : iconMap[fileType]}
+              {getFileIcon(selectedFile)}
             </div>
           )}
           

@@ -36,7 +36,7 @@ const EncryptionCard = () => {
       const result = await processFile(selectedFile, secretKey, true, selectedFileType);
       
       // Download the encrypted file
-      downloadFile(result.data, result.filename, result.type, result.isBase64);
+      downloadFile(result.data, result.filename, result.type, result.isBase64, result.isBinary);
       
       setIsProcessing(false);
       setIsComplete(true);

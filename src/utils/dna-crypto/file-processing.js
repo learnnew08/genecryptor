@@ -1,21 +1,145 @@
-
 import { encryptData, decryptData } from './encryption.js';
 
 // Process files for encryption and decryption
 const processTextFile = async (file, secretKey, isEncrypt) => {
   console.log("Processing text file...");
-  const text = await file.text();
   
-  if (isEncrypt) {
-    console.log("Encrypting text with length:", text.length);
-    const encryptedDNA = encryptData(text, secretKey);
-    console.log("Encrypted data length:", encryptedDNA.length);
-    return { data: encryptedDNA, type: 'text/plain', filename: `${file.name}.encrypted` };
-  } else {
-    console.log("Decrypting text with length:", text.length);
-    const decryptedText = decryptData(text, secretKey);
-    console.log("Decrypted text length:", decryptedText.length);
-    return { data: decryptedText, type: 'text/plain', filename: file.name.replace('.encrypted', '') };
+  try {
+    // For text files, we can handle them directly
+    const text = await file.text();
+    
+    if (isEncrypt) {
+      console.log("Encrypting text with length:", text.length);
+      const encryptedDNA = encryptData(text, secretKey);
+      console.log("Encrypted data length:", encryptedDNA.length);
+      
+      // Store file type in metadata
+      const metadata = { type: file.type || 'text/plain' };
+      const encodedMetadata = btoa(JSON.stringify(metadata));
+      const dataWithMetadata = `META:${encodedMetadata}:${encryptedDNA}`;
+      
+      return { 
+        data: dataWithMetadata, 
+        type: 'text/plain', 
+        filename: `${file.name}.encrypted` 
+      };
+    } else {
+      console.log("Decrypting text with length:", text.length);
+      
+      // Check if the file has metadata
+      let actualData = text;
+      let originalType = 'text/plain';
+      
+      if (text.startsWith('META:')) {
+        // Extract metadata and content
+        const parts = text.split(':', 3);
+        if (parts.length >= 3) {
+          try {
+            const metadataJson = atob(parts[1]);
+            const metadata = JSON.parse(metadataJson);
+            originalType = metadata.type || originalType;
+            actualData = parts.slice(2).join(':');
+          } catch (e) {
+            console.warn("Failed to parse metadata:", e);
+            // If metadata parsing fails, use the whole content
+            actualData = text;
+          }
+        }
+      } else if (text.startsWith('GENECRYPT_V1:')) {
+        // Old format without metadata
+        actualData = text;
+      }
+      
+      const decryptedText = decryptData(actualData, secretKey);
+      console.log("Decrypted text length:", decryptedText.length);
+      
+      return { 
+        data: decryptedText, 
+        type: originalType, 
+        filename: file.name.replace('.encrypted', '') 
+      };
+    }
+  } catch (error) {
+    console.error("Error processing text file:", error);
+    throw error;
+  }
+};
+
+// Process binary files (PDF, DOC, etc.)
+const processBinaryFile = async (file, secretKey, isEncrypt) => {
+  console.log("Processing binary file:", file.type);
+  
+  try {
+    if (isEncrypt) {
+      // Convert binary file to base64
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = btoa(
+        new Uint8Array(arrayBuffer).reduce(
+          (data, byte) => data + String.fromCharCode(byte),
+          ''
+        )
+      );
+      console.log("Binary file base64 length before encryption:", base64.length);
+      
+      // Store the file's MIME type
+      const originalType = file.type || 'application/octet-stream';
+      console.log("Original file type:", originalType);
+      
+      const encryptedDNA = encryptData(base64, secretKey);
+      console.log("Encrypted data length:", encryptedDNA.length);
+      
+      // Include metadata in the encrypted content
+      const metadataString = JSON.stringify({ type: originalType });
+      const encodedMetadata = btoa(metadataString);
+      const dataWithMetadata = `META:${encodedMetadata}:${encryptedDNA}`;
+      
+      return { 
+        data: dataWithMetadata, 
+        type: 'text/plain', 
+        filename: `${file.name}.encrypted`
+      };
+    } else {
+      // For decryption, read the encrypted content with metadata
+      const encryptedContent = await file.text();
+      console.log("Decrypting binary file, encrypted length:", encryptedContent.length);
+      
+      // Parse metadata and encrypted data
+      let metadata = { type: 'application/octet-stream' };
+      let encryptedData = encryptedContent;
+      
+      if (encryptedContent.startsWith('META:')) {
+        const parts = encryptedContent.split(':', 3);
+        if (parts.length >= 3) {
+          try {
+            const metadataJson = atob(parts[1]);
+            metadata = JSON.parse(metadataJson);
+            encryptedData = parts.slice(2).join(':');
+          } catch (e) {
+            console.warn("Failed to parse metadata:", e);
+            // If metadata parsing fails, use the whole content
+            encryptedData = encryptedContent;
+          }
+        }
+      } else if (encryptedContent.startsWith('GENECRYPT_V1:')) {
+        // Old format
+        encryptedData = encryptedContent;
+      }
+      
+      console.log("Attempting to decrypt binary data");
+      const decryptedBase64 = decryptData(encryptedData, secretKey);
+      console.log("Decrypted base64 length:", decryptedBase64.length);
+      
+      return { 
+        data: decryptedBase64, 
+        type: metadata.type,
+        filename: file.name.replace('.encrypted', ''),
+        isBase64: true,
+        isBinary: true
+      };
+    }
+  } catch (error) {
+    console.error("Error processing binary file:", error);
+    throw new Error(`Failed to process binary file: ${error.message}`);
   }
 };
 
@@ -150,8 +274,20 @@ export const processFile = async (file, secretKey, isEncrypt, fileType) => {
   
   console.log(`Processing ${fileType} file for ${isEncrypt ? 'encryption' : 'decryption'}`);
   
-  // Process based on file type
+  // Handle file based on type
   if (fileType === 'text') {
+    // Check for PDF or DOC files which need binary processing
+    const binaryTypes = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (binaryTypes.includes(file.type) && !file.name.endsWith('.encrypted')) {
+      return processBinaryFile(file, secretKey, isEncrypt);
+    }
+    
+    // For text files and encrypted files being decrypted
     return processTextFile(file, secretKey, isEncrypt);
   } else if (fileType === 'image') {
     return processImageFile(file, secretKey, isEncrypt);
