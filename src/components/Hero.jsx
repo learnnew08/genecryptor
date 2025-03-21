@@ -4,7 +4,7 @@ import { Shield, Lock, ArrowRight } from 'lucide-react';
 
 const Hero = () => {
   return (
-    <section className="pt-32 pb-20 md:pt-40 md:pb-32 px-6 md:px-8 bg-gradient-to-b from-white via-indigo-50/30 to-white">
+    <section className="pt-32 pb-20 md:pt-40 md:pb-32 px-6 md:px-8 bg-gradient-to-b from-[#f0f4fa] via-indigo-50/30 to-[#e6edf7]">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="text-left space-y-6">

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,7 +8,7 @@
   --gene-accent: #10b981;
   --gene-muted: #6b7280;
   --gene-border: #e5e7eb;
-  --gene-bg: #f9fafb;
+  --gene-bg: #f0f4fa;
 }
 
 @layer base {
@@ -18,7 +17,7 @@
   }
   
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-[#f0f4fa] text-gray-900 antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
   

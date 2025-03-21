@@ -25,12 +25,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#f0f4fa]">
       <Header />
       
       <main className="flex-grow pt-24">
         {/* Encryption/Decryption Section */}
-        <section className="py-20 px-6 md:px-8 bg-gradient-to-b from-white to-slate-50">
+        <section className="py-20 px-6 md:px-8 bg-gradient-to-b from-[#f0f4fa] to-[#e6edf7]">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">
@@ -49,7 +49,7 @@ const Index = () => {
         </section>
         
         {/* How It Works Section */}
-        <section className="py-24 px-6 md:px-8 bg-slate-50">
+        <section className="py-24 px-6 md:px-8 bg-[#e6edf7]">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">
